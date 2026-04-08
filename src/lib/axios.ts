@@ -3,7 +3,7 @@ import { useAuthStore } from '@/stores/authStore';
 
 // 환경 변수에서 URL을 가져옵니다. 
 // Vercel(운영)에서는 설정한 값이, 로컬(.env.local)에서는 로컬 주소가 들어옵니다.
-const baseURL = import.meta.env.VITE_API_URL;
+const baseURL = process.env.NEXT_PUBLIC_API_URL;
 
 const api = axios.create({
     //baseURL: 'http://localhost/api', // next.config.ts의 rewrites를 통해 http://localhost/api 호출
