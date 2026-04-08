@@ -39,3 +39,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+
+# 로컬 환경 변수 파일 제외
+.env.local
+.env.*.local
