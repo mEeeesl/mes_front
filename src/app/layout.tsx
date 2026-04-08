@@ -13,7 +13,7 @@ import AuthProvider from '../providers/AuthProvider';
 import Header from '@/components//layout/common/Header';
 import { useAuthStore } from '@/stores/authStore';
 //import { useProfileQuery } from '../hooks/login/useAuthMutation';
-import { useProfileQuery } from '../hooks/login/useAuth';
+// ?? 임시주석 ... 안쓰는거같은데? import { useProfileQuery } from '../hooks/login/useAuth';
 
 
 import "./globals.css"; // 기존 index.css 등
