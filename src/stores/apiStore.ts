@@ -1,6 +1,6 @@
 // 데이터를 서버에서 가져와(fecth) 보관하는 저장소
 import { create } from 'zustand';
-import { ApiResponse, DataMap } from '../types/api';
+import { ApiResponse, DataMap } from '../types/common/api';
 
 interface DataState {
     list: DataMap[]; // 맵이 담긴 배열

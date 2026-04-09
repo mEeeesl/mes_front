@@ -7,9 +7,16 @@ Next.js App Router는 기본이 서버 컴포넌트.
 */
 
 /////////////////////import { useAuthStore } from '@/stores/authStore'; // Zustand로 관리하는 경우
-import { useAuth } from '@/hooks/login/useAuth'; // 유저 정보를 TanStack Query에서 관리하는 경우
+import { useAuth } from '@/hooks/login/useAuth'; // 유저 정보를 TanStack Query에서 관리하는 경우 // TanStack Query 기반 인증 훅
+import { useAuthStore } from '@/stores/authStore'; // Zustand 스토어
+import { 
+  PersonIcon, 
+  EnvelopeClosedIcon, 
+  RocketIcon, 
+  ExitIcon, 
+  ChevronRightIcon 
+} from '@radix-ui/react-icons';
 
-import { PersonIcon, EnvelopeClosedIcon, RocketIcon, ExitIcon, ChevronRightIcon } from '@radix-ui/react-icons';
 
 /*
 최종 확인 체크리스트
@@ -24,7 +31,27 @@ export default function MyPage() {
     /////////////////////////// const { user } = useAuthStore(); // -- Zustand로 관리하는 경우
     // TanStack Query 캐시에서 유저 정보를 즉시 가져옵니다. (네트워크 요청 X)
     //const { data: user } = useProfileQuery(); // 유저 정보를 TanStack Query에서 관리하는 경우
-    const { login, isLoggingIn, user } = useAuth();
+    const { login, isLoggingIn, isProfileLoading, user } = useAuth();
+    
+    // 2026.04.09 
+    // Zustand에서 초기화 완료 여부를 가져옵니다. (새로고침 시 false -> true 대기)
+    const isInitialized = useAuthStore((state) => state.isInitialized);
+    /**
+     * [방어 코드 1] 데이터 로딩 중 처리
+     * 앱이 구동되자마자 !user 조건에 걸려 튕기는 것을 방지합니다.
+     */
+    if (!isInitialized || isProfileLoading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen bg-gray-50">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#488ad8] mx-auto mb-4"></div>
+                    <p className="text-gray-500 font-bold">사용자 정보를 확인 중입니다...</p>
+                </div>
+            </div>
+        );
+    }
+
+
     // 미들웨어에서 1차로 막아주지만, Zustand 상태가 비어있을 경우를 대비한 안전장치 -- Zustand로 관리하는 경우
     // 미들웨어에서 1차로 막아주지만, 리액트 컴포넌트 차원에서의 안전장치 -- TanStack Query에서 관리하는 경우
     if (!user) {

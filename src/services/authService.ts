@@ -21,13 +21,21 @@ export const authService = {
         // cd, data, data.user, data.userId, data.userNm
 
         // [ 방식 1-1 alias ] = data :res
-        const { cd, msg, data: res } = await api.post<LoginResponse>('/login', formData);
+        //const { cd, msg, data: res } = await api.post<LoginResponse>('/login', formData);
         // cd, msg, res, res.user, res.user.userNm
 
         // [ 방식 2. 걍 json으로 받는 방식 필드명 일치하지 않아도됨 - 이걸 써도되지만 최대한 안쓰도록하자 ]
-        // const res = await api.post<LoginResponse>('/login', formData);
+        //const res = await api.post<LoginResponse>('/login', formData);
         // res.cd, res.data, res.data.user, res.data.user.userNm
         
+        /** 2026.04.09 빌드 에러 조치 */
+        // [ 방식 3. as any 타입정의 + Alias ]
+        // 1. 먼저 Axios의 전체 응답(Response)을 받습니다.
+        const response = await api.post<LoginResponse>('/login', formData) as any;
+    
+        // 2. response.data = ApiResponse<UserMap> 타입
+        // 여기서 code, message, data를 꺼냅니다.
+        const { cd, msg, data: res } = response;
 
         /**
          * [ 서버 응답코드 체크 ]
@@ -56,8 +64,17 @@ export const authService = {
     getProfile: async (): Promise<UserMap> => {
         console.log('authService >> 프로필 조회');
 
-        const { cd, msg, data } = await api.get<UserProfile>('/profile');
+        ////const { cd, msg, data } = await api.get<UserProfile>('/profile');
         //const { data } = await api.get<{ user: UserProfile }>('/profile');
+
+        /** 2026.04.09 빌드 에러 조치 */
+        // 1. 먼저 Axios의 전체 응답(Response)을 받습니다.
+        const response = await api.get<UserProfile>('/profile');
+    
+        // 2. response.data = ApiResponse<UserMap> 타입
+        // 여기서 code, message, data를 꺼냅니다.
+        const { cd, msg, data: res } = response.data;
+
 
         /**
          * [ 서버 응답코드 체크 ]
@@ -69,6 +86,7 @@ export const authService = {
             throw new Error(msg || "authService >> 로그인 실패 응답 [ axios 에러 / 서버 에러 ] 등");
         }
 
-        return data.user;
+        //return data.user;
+        return res.user;
     },
 };

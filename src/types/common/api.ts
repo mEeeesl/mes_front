@@ -17,8 +17,8 @@ export type DataMap = Record<string, string | any>;
  * 백엔드 ApiResponse<T> 규격과 1:1 매칭
  */
 export interface ApiResponse<T> {
-    code: string;       // 비즈니스 상태 코드 (ex: "0000")
-    message: string;    
+    cd: string;       // 비즈니스 상태 코드 (ex: "0000")
+    msg: string;    
     data: T;            // resData(Map 또는 List<Map>)
 }
 

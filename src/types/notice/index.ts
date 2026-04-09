@@ -30,7 +30,7 @@ export type NoticeDetailResponse = ApiResponse<NoticeItem>;
 
 
 
-
+/*
 // 2. 공지사항 단건(Entity) 타입
 export interface NoticeItem2 extends api{
     id: number;
@@ -39,3 +39,4 @@ export interface NoticeItem2 extends api{
     createdAt: string;
     notice? DataMap;
 }
+*/
