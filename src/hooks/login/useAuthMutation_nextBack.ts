@@ -86,7 +86,7 @@ export const useProfileQuery = () => {
         queryKey: ['profile'],
         queryFn: async () => {
             try {
-                const res = await api.get('/profile');
+                const res = await api.get('/auth/profile');
                 return res.data.user; // 유저 객체 반환
             } catch (err) {
                 // 401 에러 등이 나면 비로그인 상태이므로 null 반환

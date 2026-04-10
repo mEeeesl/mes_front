@@ -12,6 +12,10 @@ export const useAuth = () => {
     const router = useRouter();
     const setInitialized = useAuthStore((state) => state.setInitialized);
 
+    /**
+     * 서버 데이터 변경(CUD) 시 useMutation을 사용
+     */
+
     /** [1] 로그인 Mutation */
     const loginMutation = useMutation({
         mutationFn: authService.login, // 서비스의 login 함수 호출

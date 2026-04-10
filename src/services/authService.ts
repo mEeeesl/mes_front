@@ -31,7 +31,7 @@ export const authService = {
         /** 2026.04.09 빌드 에러 조치 */
         // [ 방식 3. as any 타입정의 + Alias ]
         // 1. 먼저 Axios의 전체 응답(Response)을 받습니다.
-        const response = await api.post<LoginResponse>('/login', formData) as any;
+        const response = await api.post<LoginResponse>('/auth/login', formData) as any;
     
         // 2. response.data = ApiResponse<UserMap> 타입
         // 여기서 code, message, data를 꺼냅니다.
@@ -56,7 +56,7 @@ export const authService = {
 
     /** 로그아웃 요청 */
     logout: async (): Promise<void> => {
-        await api.post('/logout');
+        await api.post('/auth/logout');
         //await api.post<ApiResponse<null>>('/logout');
     },
 
@@ -69,7 +69,7 @@ export const authService = {
 
         /** 2026.04.09 빌드 에러 조치 */
         // 1. 먼저 Axios의 전체 응답(Response)을 받습니다.
-        const response = await api.get<UserProfile>('/profile');
+        const response = await api.get<UserProfile>('/auth/profile');
     
         // 2. response.data = ApiResponse<UserMap> 타입
         // 여기서 code, message, data를 꺼냅니다.
@@ -89,4 +89,15 @@ export const authService = {
         //return data.user;
         return res.user;
     },
+
+    // 일반 회원가입
+    signup: async (userData: any) => {
+        //const { data } = await axios.post('/auth/signup', userData);
+        //return data;
+    },
+    // 소셜 로그인 (카카오, 구글 등 공통 처리 가능)
+    socialLogin: async (provider: 'kakao' | 'google' | 'naver', code: string) => {
+        //const { data } = await axios.post(`/auth/social/${provider}`, { code });
+        //return data;
+    }
 };

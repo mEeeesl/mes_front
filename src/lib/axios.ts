@@ -48,11 +48,11 @@ api.interceptors.response.use(
 
         console.log("chk");
         console.log(originalRequest._retry);
-        console.log(originalRequest.url.includes('/reissue'))
+        console.log(originalRequest.url.includes('/auth/reissue'))
         // 루프방지
         // 이미 재시도 중인 요청이거나
         // 토큰 재발급이 실패한 거면 루프 종료
-        if(originalRequest._retry || originalRequest.url.includes('/reissue')){
+        if(originalRequest._retry || originalRequest.url.includes('/auth/reissue')){
             console.log("axios res interceptor... 루프방지..");
             
             return Promise.reject(error);
@@ -76,7 +76,7 @@ api.interceptors.response.use(
                 // api 인스턴스말고 axios 기본 인스턴스를 사용해야 인터셉터 중복 호출을 피함 
                 // 401이 다시 나도 인터셉터가 중복실행되지 않음
                 // baseURL이 설정된 api 인스턴스가 아닌, 전체 경로 작성이 안전..
-                await axios.post('/api/reissue', {}, {withCredentials:true});
+                await axios.post('/api/auth/reissue', {}, {withCredentials:true});
 
                 // 재발급 성공 시 원래 요청 다시
                 // 재발급 성공 후 originalRequest의 헤더 등을 최신화할 필요가 있다면 여기서 수정
