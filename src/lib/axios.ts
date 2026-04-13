@@ -52,6 +52,7 @@ api.interceptors.response.use(
         // 루프방지
         // 이미 재시도 중인 요청이거나
         // 토큰 재발급이 실패한 거면 루프 종료
+        // 1. 루프 방지 및 reissue 실패 시 처리
         if(originalRequest._retry || originalRequest.url.includes('/auth/reissue')){
             console.log("axios res interceptor... 루프방지..");
             
@@ -63,6 +64,7 @@ api.interceptors.response.use(
 
         // 토큰 만료 시 처리
         // 에러 상태가 401(Unauthorized) && 아직 재시도를 하지 않은 경우
+        // 2. 토큰 만료 시 처리 (401)
         if(error.response?.status === 401 && !originalRequest._retry){
             
             
@@ -95,11 +97,24 @@ api.interceptors.response.use(
                 if(typeof window !== 'undefined'){
                     console.log("axiox.ts /// 토큰 자동 재발급 에러 시 ... typeof window !== 'undefined' 문 안에 /login 이동 처리를 넣을지말지..");
 
+
+                    // [핵심 수정 부분]
+                    // 로그인, 회원가입이나 회원가입 콜백 페이지 등 에서는 로그인이 안 되어 있는 게 당연하므로 튕구면 안 됩니다.
+                    const publicPaths = ['/login', '/signup', '/signup/callback'];
+                    const isPublicPath = publicPaths.some(path => window.location.pathname.includes(path));
+
+                    if (!isPublicPath) {
+                        console.log("인증이 필요한 페이지이므로 로그인으로 이동");
+                        window.location.href = '/login?expired=true';
+                    } else {
+                        console.log("공개 페이지(회원가입 등)이므로 리다이렉트 차단");
+                    }
+
                     // 사용자 경험을 위해 리다이렉트는 여기서 처리하는 것이 좋습니다.
                     // 단, 현재 페이지가 이미 login 페이지라면 이동하지 않도록 방어 로직 추가
-                    if (!window.location.pathname.includes('/login')) {
-                        window.location.href = '/login?expired=true';
-                    }
+                    //if (!window.location.pathname.includes('/login')) {
+                        //window.location.href = '/login?expired=true';
+                    //}
                 }
                 //window.location.href='/login';
                 return Promise.reject(reissueError)

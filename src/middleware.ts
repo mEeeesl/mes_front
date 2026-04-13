@@ -1,3 +1,4 @@
+/** Next.js - middleware.ts - 서버 사이드 동작 */
 /** 로그인 베이스 페이지설정 (접근 권한 설정) */
 
 import { NextResponse } from 'next/server';

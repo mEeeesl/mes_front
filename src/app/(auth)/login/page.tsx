@@ -88,9 +88,11 @@ export default function LoginPage() {
 
                     {/* 하단 보조 메뉴 */}
                     <div className="mt-10 flex justify-center gap-6 text-sm font-bold text-gray-400">
+                        <button onClick={() => {router.push('/signup');}} className="hover:text-[#488ad8] transition-colors cursor-pointer">회원가입</button>
+                        <div className="w-[1px] h-3 bg-gray-200 self-center" />
                         <button className="hover:text-[#488ad8] transition-colors cursor-pointer">아이디 찾기</button>
                         <div className="w-[1px] h-3 bg-gray-200 self-center" />
-                        <button className="hover:text-[#488ad8] transition-colors cursor-pointer">비밀번호 찾기</button>
+                        <button className="hover:text-[#488ad8] transition-colors cursor-pointer">비밀번호 찾기</button>                     
                     </div>
                 </div>
             </div>

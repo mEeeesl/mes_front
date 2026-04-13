@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/login/useAuth';
 import { HomeIcon, CaretLeftIcon, HamburgerMenuIcon, AvatarIcon, Cross1Icon, ChevronDownIcon } from '@radix-ui/react-icons';
+import { Logo } from '@/components/common/Logo';
 
 export default function Header() {
     /*
@@ -54,120 +55,133 @@ export default function Header() {
     // + 공통 레이아웃 비적용 경로 리스트  
     //const shouldHideHeader = hideHeaderPaths.includes(pathname);
     
+    const isMain = pathname === '/';
 
     return (
         <>
             {/* --- 1. 상단 헤더 바 --- */}
-            <header className="sticky top-0 z-[110] h-16 w-full flex justify-between items-center p-4 border-b border-[#ccc] bg-white text-gray-800 px-6 md:px-10">
-                
-                {/* [왼쪽]: 홈 / 뒤로가기 */}
-                <div className="flex items-center gap-4">
-                    {pathname === '/' ? (
-                        <Link href="/">
-                            <button className="p-2 hover:bg-gray-100 rounded-md transition-all active:scale-90">
-                                <HomeIcon className="w-6 h-6" />
-                            </button>
-                        </Link>
-                    ) : (
-                        <button 
-                            onClick={() => router.back()} 
-                            className="p-2 hover:bg-gray-100 rounded-md transition-all active:scale-90 active:-translate-x-1"
-                        >
-                            <CaretLeftIcon className="w-7 h-7 text-gray-800" />
-                        </button>
-                    )}
-                    <Link href="/">
-                        <span className="hidden md:block font-bold text-lg text-[#488ad8] tracking-tight">Global ERP</span>
-                    </Link>
-                </div>
-
-                {/* [중앙]: PC 전용 풀 와이드 네비게이션 (폰트/밑줄 밸런스 조정) */}
-                <nav className="hidden md:flex items-center gap-12 h-full">
+            <header className="sticky top-0 z-[110] h-16 w-full border-b border-[#ccc] bg-white text-gray-800 px-6 md:px-10">
+                <div className="relative h-full w-full flex items-center justify-between">
                     
-                    {/* 메뉴 1: 스케줄 관리 */}
-                    <div className="relative h-full flex items-center group">
-                        <button className="flex items-center gap-1.5 text-[16px] font-bold text-gray-700 group-hover:text-[#488ad8] transition-colors h-full pb-1">
-                            스케줄 관리
-                            <ChevronDownIcon className="w-4 h-4 transition-transform group-hover:rotate-180" />
-                        </button>
-                        
-                        {/* 풀 와이드 드롭다운 */}
-                        <div className="fixed left-0 top-16 w-screen bg-white/95 backdrop-blur-md shadow-xl border-b border-gray-100 opacity-0 invisible -translate-y-5 group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 transition-all duration-300 z-[100] py-12">
-                            <div className="max-w-7xl mx-auto px-10 flex gap-24">
-                                <div className="w-1/4 border-r border-gray-100">
-                                    <h3 className="text-2xl font-black text-[#488ad8] tracking-tighter">SCHEDULE</h3>
-                                    <p className="text-[13px] text-gray-400 mt-2 font-medium italic">Work Management System</p>
-                                </div>
-                                <div className="flex gap-20">
-                                    <div className="flex flex-col gap-5">
-                                        <Link href="/schedule/apply" className="text-[17px] font-bold text-gray-600 hover:text-[#488ad8] transition-all hover:translate-x-1.5">출근신청</Link>
-                                        <Link href="/schedule/list" className="text-[17px] font-bold text-gray-600 hover:text-[#488ad8] transition-all hover:translate-x-1.5">일정조회</Link>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        {/* 하단 인디케이터 (글자와 간격을 위해 pb-1 준 만큼 위치 조정 가능) */}
-                        <div className="absolute bottom-0 left-0 w-0 h-[3px] bg-[#488ad8] transition-all group-hover:w-full" />
-                    </div>
-
-                    {/* 메뉴 2: 시스템 설정 */}
-                    <div className="relative h-full flex items-center group">
-                        <button className="flex items-center gap-1.5 text-[16px] font-bold text-gray-700 group-hover:text-[#488ad8] transition-colors h-full pb-1">
-                            시스템 설정
-                            <ChevronDownIcon className="w-4 h-4 transition-transform group-hover:rotate-180" />
-                        </button>
-                        <div className="fixed left-0 top-16 w-screen bg-white/95 backdrop-blur-md shadow-xl border-b border-gray-100 opacity-0 invisible -translate-y-5 group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 transition-all duration-300 z-[100] py-12">
-                            <div className="max-w-7xl mx-auto px-10 flex gap-24">
-                                <div className="w-1/4 border-r border-gray-100">
-                                    <h3 className="text-2xl font-black text-[#488ad8] tracking-tighter">SYSTEM</h3>
-                                    <p className="text-[13px] text-gray-400 mt-2 font-medium italic">Admin Configuration</p>
-                                </div>
-                                <div className="flex flex-col gap-5">
-                                    <Link href="/system/user" className="text-[17px] font-bold text-gray-600 hover:text-[#488ad8] transition-all hover:translate-x-1.5">사용자 권한 관리</Link>
-                                    <Link href="/system/code" className="text-[17px] font-bold text-gray-600 hover:text-[#488ad8] transition-all hover:translate-x-1.5">공통 코드 관리</Link>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="absolute bottom-0 left-0 w-0 h-[3px] bg-[#488ad8] transition-all group-hover:w-full" />
-                    </div>
-                </nav>
-
-                {/* [오른쪽 그룹]: 마이페이지 & 로그아웃 & 햄버거 */}
-                <div className="flex items-center gap-3 md:gap-6">
-                    {/* PC 전용: 아바타 + 로그아웃 버튼 그룹 */}
-                    <div className="hidden md:flex items-center gap-5">
-                        <button 
-                            onClick={() => router.push('/mypage')} 
-                            className="flex items-center gap-2 group transition-all active:scale-95"
-                        >
-                            <AvatarIcon className="w-7 h-7 text-gray-400 group-hover:text-[#488ad8] transition-colors" />
-                            <span className="text-sm font-bold text-gray-600 group-hover:text-[#488ad8]">마이페이지</span>
-                        </button>
-                        
-                        {/* 가느다란 분리선 */}
-                        <div className="w-[1px] h-3 bg-gray-200" />
-
-                        {user && (
-                            <button 
-                                onClick={() => { if(confirm('로그아웃 하시겠습니까?')) logoutMutate(); }}
-                                className="text-sm font-bold text-[#488ad8] hover:text-[#3a72b5] transition-colors active:scale-95"
-                            >
-                                로그아웃
-                            </button>
+                    {/* [왼쪽 영역] */}
+                    <div className="flex items-center gap-4 z-10 min-w-[40px]">
+                        {isMain ? (
+                            /* 메인 화면일 때 */
+                            <>
+                                <Link href="/" className="flex items-center">
+                                    {/* 모바일: 메인일 때 좌측 로고 노출 / PC: 메인일 때 로고 숨김
+                                    <Logo type="symbol" className="w-9 h-9 md:hidden" />
+                                    */}
+                                    {/* PC 텍스트 로고 (기존 유지) 
+                                    <span className="hidden md:block font-bold text-lg text-[#488ad8] tracking-tight">Global ERP</span>
+                                    */}
+                                    <Logo type="full" />
+                                </Link>
+                            </>
+                        ) : (
+                            /* 메인이 아닐 때 (서브 페이지) */
+                            <>
+                                <button 
+                                    onClick={() => router.back()} 
+                                    className="p-2 hover:bg-gray-100 rounded-md transition-all active:scale-90 active:-translate-x-1"
+                                >
+                                    <CaretLeftIcon className="w-7 h-7 text-gray-800" />
+                                </button>
+                                {/* PC: 메인이 아닐 때 뒤로가기 우측에 Symbol 로고 노출 */}
+                                <Link href="/" className="hidden md:block">
+                                    <Logo type="symbol" className="w-8 h-8" />
+                                </Link>
+                            </>
                         )}
                     </div>
 
-                    {/* 모바일 전용: 햄버거 버튼만 노출 (아바타는 사이드바 안에 있음) */}
-                    <button onClick={toggleMenu} className="md:hidden p-2 hover:bg-gray-100 rounded-md transition-all">
-                        <HamburgerMenuIcon className="w-6 h-6" />
-                    </button>
+                    {/* [중앙 영역] */}
+                    <div className="flex items-center justify-center">
+                        {/* 모바일: 메인이 아닐 때만 로고를 화면 정중앙에 배치 */}
+                        {!isMain && (
+                            <div className="md:hidden absolute left-1/2 -translate-x-1/2">
+                                <Link href="/">
+                                    <Logo type="symbol" className="w-9 h-9" />
+                                </Link>
+                            </div>
+                        )}
+
+                        {/* PC 전용 풀 와이드 네비게이션 (폰트/밑줄 밸런스 조정) */}
+                        <nav className="hidden md:flex items-center gap-12 h-full">
+
+                            {/* 메뉴 1: 스케줄 관리 */}
+                            <div className="relative h-full flex items-center group">
+                                <button className="flex items-center gap-1.5 text-[16px] font-bold text-gray-700 group-hover:text-[#488ad8] transition-colors h-full pb-1">
+                                    스케줄 관리
+                                    <ChevronDownIcon className="w-4 h-4 transition-transform group-hover:rotate-180" />
+                                </button>
+
+                                {/* 풀 와이드 드롭다운 */}
+                                <div className="fixed left-0 top-16 w-screen bg-white/95 backdrop-blur-md shadow-xl border-b border-gray-100 opacity-0 invisible -translate-y-5 group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 transition-all duration-300 z-[100] py-12">
+                                    <div className="max-w-7xl mx-auto px-10 flex gap-24">
+                                        <div className="w-1/4 border-r border-gray-100">
+                                            <h3 className="text-2xl font-black text-[#488ad8] tracking-tighter uppercase">Schedule</h3>
+                                            <p className="text-[13px] text-gray-400 mt-2 font-medium italic">Work Management System</p>
+                                        </div>
+                                        <div className="flex gap-20">
+                                            <div className="flex flex-col gap-5">
+                                                <Link href="/schedule/apply" className="text-[17px] font-bold text-gray-600 hover:text-[#488ad8] transition-all hover:translate-x-1.5">출근신청</Link>
+                                                <Link href="/schedule/list" className="text-[17px] font-bold text-gray-600 hover:text-[#488ad8] transition-all hover:translate-x-1.5">일정조회</Link>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {/* 하단 인디케이터 (글자와 간격을 위해 pb-1 준 만큼 위치 조정 가능) */}
+                                <div className="absolute bottom-0 left-0 w-0 h-[3px] bg-[#488ad8] transition-all group-hover:w-full" />
+                            </div>
+
+                            {/* 메뉴 2: 시스템 설정 */}
+                            <div className="relative h-full flex items-center group">
+                                <button className="flex items-center gap-1.5 text-[16px] font-bold text-gray-700 group-hover:text-[#488ad8] transition-colors h-full pb-1">
+                                    시스템 설정
+                                    <ChevronDownIcon className="w-4 h-4 transition-transform group-hover:rotate-180" />
+                                </button>
+                                <div className="fixed left-0 top-16 w-screen bg-white/95 backdrop-blur-md shadow-xl border-b border-gray-100 opacity-0 invisible -translate-y-5 group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 transition-all duration-300 z-[100] py-12">
+                                    <div className="max-w-7xl mx-auto px-10 flex gap-24">
+                                        <div className="w-1/4 border-r border-gray-100">
+                                            <h3 className="text-2xl font-black text-[#488ad8] tracking-tighter uppercase">System</h3>
+                                            <p className="text-[13px] text-gray-400 mt-2 font-medium italic">Admin Configuration</p>
+                                        </div>
+                                        <div className="flex flex-col gap-5">
+                                            <Link href="/system/user" className="text-[17px] font-bold text-gray-600 hover:text-[#488ad8] transition-all hover:translate-x-1.5">사용자 권한 관리</Link>
+                                            <Link href="/system/code" className="text-[17px] font-bold text-gray-600 hover:text-[#488ad8] transition-all hover:translate-x-1.5">공통 코드 관리</Link>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="absolute bottom-0 left-0 w-0 h-[3px] bg-[#488ad8] transition-all group-hover:w-full" />
+                            </div>
+                        </nav>
+                    </div>
+
+                    {/* [오른쪽 영역] */}
+                    <div className="flex items-center gap-3 md:gap-6 z-10 min-w-[40px] justify-end">
+                        <div className="hidden md:flex items-center gap-5">
+                            <button onClick={() => router.push('/mypage')} className="flex items-center gap-2 group transition-all active:scale-95">
+                                <AvatarIcon className="w-7 h-7 text-gray-400 group-hover:text-[#488ad8] transition-colors" />
+                                <span className="text-sm font-bold text-gray-600 group-hover:text-[#488ad8]">마이페이지</span>
+                            </button>
+                            <div className="w-[1px] h-3 bg-gray-200" />
+                            {user && (
+                                <button onClick={() => { if(confirm('로그아웃 하시겠습니까?')) logoutMutate(); }} className="text-sm font-bold text-[#488ad8] hover:text-[#3a72b5] transition-colors">
+                                    로그아웃
+                                </button>
+                            )}
+                        </div>
+
+                        {/* 모바일 전용: 햄버거 버튼만 노출 (아바타는 사이드바 안에 있음) */}
+                        <button onClick={toggleMenu} className="md:hidden p-2 hover:bg-gray-100 rounded-md transition-all">
+                            <HamburgerMenuIcon className="w-6 h-6" />
+                        </button>
+                    </div>
                 </div>
-
-
-                
             </header>
 
-            {/* --- 2. 모바일 사이드 메뉴 (기존 디자인 유지) --- */}
+            {/* --- 2. 모바일 사이드 메뉴 --- */}
             <div 
                 className={`fixed inset-0 bg-black/50 z-[120] transition-opacity duration-300 md:hidden ${
                     isMenuOpen ? 'opacity-100 visible' : 'opacity-0 invisible'
@@ -193,9 +207,9 @@ export default function Header() {
                         ) : (
                             <button onClick={() => { router.push('/login'); toggleMenu(); }} className="text-[#488ad8] font-bold text-lg">로그인</button>
                         )}
-                        <div>
-                        <button onClick={() => { router.push('/'); toggleMenu(); }}><HomeIcon className="w-7 h-7 mr-2 text-gray-400" /></button>
-                        <button onClick={() => { router.push('/mypage'); toggleMenu(); }}><AvatarIcon className="w-7 h-7 text-gray-400" /></button>
+                        <div className="flex items-center gap-2">
+                            <button onClick={() => { router.push('/'); toggleMenu(); }}><Logo type="symbol" className="w-8 h-8" /></button>
+                            <button onClick={() => { router.push('/mypage'); toggleMenu(); }}><AvatarIcon className="w-7 h-7 text-gray-400" /></button>
                         </div>
                     </div>
 
@@ -226,7 +240,3 @@ export default function Header() {
         </>
     );
 }
-
-// React.CSSProperties - Style 방식 .. 음 근데 TailWind로 가자...
-//const commonHeaderStyle: React.CSSProperties = { display: 'flex', justifyContent: 'space-between', padding: '1rem', borderBottom: '1px solid #ccc', position: 'fixed', top: '0', z-index: '99', width: '100vw', background: 'white' };
-//const commonHeaderStyle: React.CSSProperties = { display: 'flex', justifyContent: 'space-between', padding: '1rem', borderBottom: '1px solid #ccc', position: 'fixed', top: '0px', width: '100vw', background: 'white' };

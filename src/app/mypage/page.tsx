@@ -6,9 +6,12 @@ Next.js App Router는 기본이 서버 컴포넌트.
 'use client'; 클라이언트 컴포넌트로 선언 - useEffect나 useState, Zustand 사용을 위함
 */
 
+import { useEffect, useRef } from 'react'; // 2026.04.13
+import { useRouter } from 'next/navigation';
 /////////////////////import { useAuthStore } from '@/stores/authStore'; // Zustand로 관리하는 경우
 import { useAuth } from '@/hooks/login/useAuth'; // 유저 정보를 TanStack Query에서 관리하는 경우 // TanStack Query 기반 인증 훅
 import { useAuthStore } from '@/stores/authStore'; // Zustand 스토어
+import { useModalStore } from '@/stores/useModalStore'; // Custom modal 스토어
 import { 
   PersonIcon, 
   EnvelopeClosedIcon, 
@@ -32,14 +35,65 @@ export default function MyPage() {
     // TanStack Query 캐시에서 유저 정보를 즉시 가져옵니다. (네트워크 요청 X)
     //const { data: user } = useProfileQuery(); // 유저 정보를 TanStack Query에서 관리하는 경우
     const { login, isLoggingIn, isProfileLoading, user } = useAuth();
+    const isInitialized = useAuthStore((state) => state.isInitialized);
     
+    // 2026.04.13
+    const router = useRouter();
+    // 리다이렉트가 이미 실행되었는지 확인하는 플래그
+    const isRedirecting = useRef(false);
+    // 커스텀 얼럿
+    const showAlert = useModalStore((state) => state.showAlert);
+
+console.log("MyPage 렌더링 시도");
+/** TO-BE [S] */
+
+    // [방어 코드] 클라이언트 측 강제 리다이렉트
+    // 미들웨어를 통과했더라도, 클라이언트 상태에서 유저가 없는 것이 최종 확인되면 로그인으로 보냅니다.
+    useEffect(() => {
+        console.log("체크:", { isInitialized, isProfileLoading, user });
+        // 초기화가 완료되었고 로딩도 끝났는데 유저 정보가 없다면, + 이미 리다이렉트 중이 아닌지 확인
+        if (isInitialized && !isProfileLoading && !user && !isRedirecting.current) {
+            isRedirecting.current = true; // 중복 실행 방지 플래그 On
+
+            //showAlert('로그인이 필요한 서비스입니다.');
+            showAlert('로그인이 필요한 서비스입니다.', () => {
+                router.replace('/login'); // 클릭 시 함수
+            });            
+            // router.push 대신 replace를 쓰면 뒤로가기를 눌렀을 때 다시 마이페이지(권한 없음)로 돌아와서 무한 루프에 빠지는 것을 방지
+        }
+    }, [isInitialized, isProfileLoading, user, router]);
+
+    /**
+     * 1. 데이터 로딩 중이거나 아직 초기화 전일 때 (스피너 표시)
+     */
+    if (!isInitialized || isProfileLoading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen bg-gray-50">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#488ad8] mx-auto mb-4"></div>
+                    <p className="text-gray-500 font-bold">사용자 정보를 확인 중입니다...</p>
+                </div>
+            </div>
+        );
+    }
+
+    /**
+     * 2. 유저 정보가 최종적으로 없는 경우
+     * useEffect에서 리다이렉트를 시키지만, 찰나의 순간에 아래 UI가 보일 수 있으므로 
+     * null을 반환하거나 최소한의 처리만 합니다.
+     */
+    if (!user) {
+        return null; 
+    }
+
+/** TO-BE [E] */
+/** AS-IS    
     // 2026.04.09 
     // Zustand에서 초기화 완료 여부를 가져옵니다. (새로고침 시 false -> true 대기)
     const isInitialized = useAuthStore((state) => state.isInitialized);
-    /**
-     * [방어 코드 1] 데이터 로딩 중 처리
-     * 앱이 구동되자마자 !user 조건에 걸려 튕기는 것을 방지합니다.
-     */
+    
+    // [방어 코드 1] 데이터 로딩 중 처리
+    // 앱이 구동되자마자 !user 조건에 걸려 튕기는 것을 방지합니다.
     if (!isInitialized || isProfileLoading) {
         return (
             <div className="flex items-center justify-center min-h-screen bg-gray-50">
@@ -61,7 +115,7 @@ export default function MyPage() {
         </div>
         );
     }
-
+*/    
     return (
 
 

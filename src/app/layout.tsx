@@ -6,12 +6,11 @@ Next.js App Router는 기본이 서버 컴포넌트.
 'use client'; 클라이언트 컴포넌트로 선언 - useEffect나 useState, Zustand 사용을 위함
 */
 
-
-// [추가] 방금 만든 QueryProvider를 가져옵니다.
 import QueryProvider from '@/providers/QueryProvider';
 import AuthProvider from '../providers/AuthProvider';
 import Header from '@/components//layout/common/Header';
 import { useAuthStore } from '@/stores/authStore';
+import GlobalModal from '@/components/common/modal/GlobalModal';
 //import { useProfileQuery } from '../hooks/login/useAuthMutation';
 // ?? 임시주석 ... 안쓰는거같은데? import { useProfileQuery } from '../hooks/login/useAuth';
 
@@ -74,7 +73,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             {/** 헤더 높이만큼 Padding-Top (pt-16: 4rem/64px) */}
             <main /*className="pt-16"*/>
               {children}
+              <GlobalModal /> {/* 전역 모달 배치 */}
             </main>
+            
           </AuthProvider>
         </QueryProvider>
       </body>

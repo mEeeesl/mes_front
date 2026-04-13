@@ -6,24 +6,39 @@
 import { useAuthStore } from '@/stores/authStore';
 //import { useProfileQuery } from '@/hooks/login/useAuthMutation';
 import { useAuth } from '@/hooks/login/useAuth'; // 통합 훅
+import { usePathname } from 'next/navigation'; // 경로 확인을 위해 추가
 
 export default function AuthProvider({ children }: { children: React.ReactNode }) {
     // 1. Zustand에서 초기화 완료 여부 플래그만 가져옴
     const isInitialized = useAuthStore((state) => state.isInitialized);
+    
+    const pathname = usePathname();
+
+    // 인증 체크를 건너뛸 경로들 (Public Paths)
+    const publicPaths = ['/login', '/signup', '/signup/callback'];
+    const isPublicPath = publicPaths.some(path => pathname.includes(path));
+
 
     /**
      * 2. 통합 훅 호출
      * useAuth 내부의 profileQuery가 실행되면서 
      * 자동으로 /profile API를 호출하고 Zustand의 setInitialized(true)를 수행합니다.
+     * 
+     * 통합 훅 호출 시 enabled 옵션 전달
+     * 공개 경로(isPublicPath)일 때는 query를 아예 실행하지(enabled: false) 않습니다.
      */
-    const { isProfileLoading } = useAuth();
+    //const { isProfileLoading } = useAuth();
+    const { isProfileLoading } = useAuth({ enabled: !isPublicPath });
 
     /**
      * 3. 최초 접속 시 로딩 처리
      * 아직 인증 체크가 끝나지 않았고(isInitialized: false), 
      * 서버 통신 중일 때만(isProfileLoading: true) 로딩 화면을 보여줍니다.
+     * 
+     * 현재 경로가 공개 페이지(로그인, 회원가입 등)라면 
+     * 인증 정보 확인 중이라는 로딩 화면을 보여주지 않고 바로 children을 렌더링
      */
-    if (!isInitialized && isProfileLoading) {
+    if (!isPublicPath && !isInitialized && isProfileLoading) {
         return (
             <div style={loadingContainerStyle}>
                 <div style={loadingBoxStyle}>

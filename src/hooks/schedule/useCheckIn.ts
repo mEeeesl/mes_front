@@ -64,7 +64,8 @@ export const useCheckIn = () => {
                     checkInMutation.mutate({ lat: latitude, lng: longitude, accuracy });
                 } else {
                     //alert(`회사 주변으로 이동해주세요. (현재 거리: ${Math.round(distance)}m)`);
-                    alert(`회사 주변으로 이동해주세요. (현재 거리: ${distance}m`);
+                    //alert(`회사 주변으로 이동해주세요. (현재 거리: ${distance}m`);
+                    alert(`회사 주변으로 이동해주세요. (회사까지: ${Math.floor(distance)} m`);
                 }
             },
             () => alert("위치 정보를 가져올 수 없습니다."),

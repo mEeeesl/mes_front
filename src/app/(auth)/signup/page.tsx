@@ -1,5 +1,416 @@
-// 회원가입 페이지"use client";
+'use client';
 
+import React, { useState, useCallback, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { Logo } from '@/components/common/Logo';
+import { 
+  PersonIcon, 
+  EnvelopeClosedIcon, 
+  MobileIcon, 
+  CalendarIcon, 
+  LockClosedIcon,
+  CheckCircledIcon
+} from '@radix-ui/react-icons';
+
+import Script from 'next/script';
+
+declare global {
+  interface Window {
+    Kakao: any;
+  }
+}
+
+export default function SignUpPage() {
+  const router = useRouter();
+  const [step, setStep] = useState(1); // 1: 정보입력, 2: 인증진행
+    /* TO-BE */
+    // 1. 동기적 실행
+    // useEffect는 화면이 한 번 그려진 후에 실행
+    // useState(() => ...)는 화면이 그려지기 전에 초기값을 결정
+
+    // 2. 렌더링 횟수 감소:
+    // 이전: 렌더링(false) -> useEffect 실행 -> 다시 렌더링(true) => 에러 발생 및 2번 렌더링
+    // 현재: 처음부터 렌더링(true) => 에러 없음 및 1번 렌더링
+
+    // 1. formData 초기화 (Lazy Initializer)
+    const [formData, setFormData] = useState(() => {
+        if (typeof window !== 'undefined') {
+            const saved = sessionStorage.getItem('temp_signup_data');
+            return saved ? JSON.parse(saved) : {
+                userNm: '', userId: '', userPw: '', telNo: '', birthDate: '', email: '',
+            };
+        }
+        return { userNm: '', userId: '', userPw: '', telNo: '', birthDate: '', email: '' };
+    });
+
+    // 2. isVerified 초기화 (Lazy Initializer)
+    // useEffect에서 set하지 않고, 처음부터 스토리지에 값이 있으면 true로 시작합니다.
+    const [isVerified, setIsVerified] = useState(() => {
+        if (typeof window !== 'undefined') {
+            return !!sessionStorage.getItem('kakao_auth_code'); // 값이 있으면 true, 없으면 false
+        }
+        return false;
+    });
+
+    // 이제 이 useEffect는 아예 비워두거나, 
+    // 정말로 '상태 업데이트'가 아닌 '외부 통신' 용도로만 사용하면 됩니다.
+    useEffect(() => {
+        console.log("인증 여부:", isVerified);
+        // 상태를 변경하는 코드가 없으므로 빨간 줄이 생기지 않습니다.
+    }, [isVerified]);
+
+  
+  /* AS-IS 
+  const [formData, setFormData] = useState({
+    userNm: '',
+    userId: '',
+    userPw: '',
+    telNo: '',
+    birthDate: '',
+    email: '',
+  });
+  
+  // 카카오 인증 완료 여부 상태
+  const [isVerified, setIsVerified] = useState(false);
+
+  // [복원] 페이지 로드 시 세션 스토리지에 데이터가 있으면 가져옴
+    useEffect(() => {
+        
+        // 1. 기존 입력값 복원
+        const savedData = sessionStorage.getItem('temp_signup_data');
+        if (savedData) {
+            setFormData(JSON.parse(savedData));
+            // 복원 후에는 지워주는 것이 깔끔함 (필요에 따라 유지)
+            // sessionStorage.removeItem('temp_signup_data'); 
+        }
+        
+
+        // 2. 카카오 인증 코드 확인 (있으면 인증 완료 상태로 변경)
+        const authCode = sessionStorage.getItem('kakao_auth_code');
+        if (authCode) {
+            setIsVerified(true);
+        }
+    }, []);
+    */
+  const [isKakaoLoaded, setIsKakaoLoaded] = useState(false);
+  const [isKakaoInitialized, setIsKakaoInitialized] = useState(false);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    let newValue = value;
+
+    // 아이디: 소문자 변환 후 영문/숫자 제외하고 모두 즉시 삭제
+    if (name === 'userId') {
+        console.log(newValue);
+        // 소문자로 변환 후, 소문자와 숫자가 아닌 모든 문자를 제거
+        newValue = newValue.toLowerCase().replace(/[^a-z0-9]/g, '');
+        console.log(" > "+newValue);
+    } 
+
+    // 비밀번호: 영문/숫자/허용 특수문자 제외 모두 삭제
+    else if (name === 'userPw') {
+        newValue = value.replace(/[^a-z0-9!@#$%^&*()]/g, '');
+    }
+
+    // 전화번호: 숫자만 추출 후 하이픈 자동 삽입
+    else if (name === 'telNo') {
+        const onlyNums = value.replace(/[^0-9]/g, '');
+        if (onlyNums.length <= 3) {
+            newValue = onlyNums;
+        } else if (onlyNums.length <= 7) {
+            newValue = `${onlyNums.slice(0, 3)}-${onlyNums.slice(3)}`;
+        } else {
+            newValue = `${onlyNums.slice(0, 3)}-${onlyNums.slice(3, 7)}-${onlyNums.slice(7, 11)}`;
+        }
+    }
+
+
+    setFormData({ ...formData, [e.target.name]: newValue });
+    // 최종 정제된 값을 상태에 반영
+    //setFormData((prev) => ({ ...prev, [name]: newValue }));
+  };
+
+  const handleNextStep = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // 1. 아이디 유효성 체크 (최소 길이 등 추가 가능)
+    if (formData.userId.length < 6) {
+        alert("아이디는 최소 6자 이상이어야 합니다.");
+        return;
+    }
+
+    // 2. 이메일 유효성 체크
+    // 규칙: (문자) @ (문자) . (알파벳 2자 이상)
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!emailRegex.test(formData.email)) {
+        alert("올바른 이메일 형식이 아닙니다. (예: example@erp.com)");
+        return;
+    }
+
+    setStep(2); // 인증 단계로 이동
+  };
+
+
+    // SDK 초기화 함수 - 한 번만 실행되도록 보장
+    const initKakao = useCallback(() => {
+        if (window.Kakao && !window.Kakao.isInitialized()) {
+            window.Kakao.init(process.env.NEXT_PUBLIC_KAKAO_JS_KEY);
+            console.log('Kakao SDK 초기화 완료:', window.Kakao.isInitialized());
+            setIsKakaoInitialized(true);
+        }
+    }, []);
+  /*
+  // 카카오 본인인증 함수
+  const handleKakaoVerify = () => {
+    // 실제로는 여기서 카카오 API 호출 (window.Kakao.Auth.authorize)
+    //alert('카카오톡을 통해 본인 확인이 완료되었습니다.');
+    if (!window.Kakao || !isKakaoLoaded) {
+      alert('카카오 SDK가 아직 로드되지 않았습니다. 잠시 후 다시 시도해주세요.');
+      return;
+    }
+    console.log("----------------");
+    console.log(window.Kakao);
+    console.log(isKakaoLoaded);
+    console.log(`${window.location.origin}`);
+    console.log("----------------");
+    // 최신 v2 방식: authorize (리다이렉트 방식)
+    // 팝업 에러가 없고 모바일/PC 모두에서 가장 안정적입니다.
+    window.Kakao.Auth.authorize({
+      redirectUri: `${window.location.origin}/signup/callback`, // 인증 후 돌아올 주소
+      scope: 'profile_nickname', // 필요한 권한
+    });
+  };
+  */
+
+  const handleKakaoVerify = () => {
+        if (isVerified) return; // 이미 인증됐다면 실행 안함    
+
+        // SDK가 로드되지 않았거나 초기화 전이면 실행 차단
+        if (!window.Kakao || !window.Kakao.isInitialized()) {
+            alert('카카오 SDK가 준비되지 않았습니다. 잠시 후 다시 시도해주세요.');
+            return;
+        }
+
+        console.log('카카오 인증 시작...');
+        
+        // [저장] 카카오로 떠나기 전, 현재 입력 값을 세션 스토리지에 저장
+        sessionStorage.setItem('temp_signup_data', JSON.stringify(formData));
+
+        window.Kakao.Auth.authorize({
+            redirectUri: `${window.location.origin}/signup/callback`,
+            scope: 'profile_nickname', // 필요시 주석 해제 (단, 설정 확인 필수)
+            throughTalk: false, // 앱 실행을 시도하지 않고 바로 웹 브라우저에서 로그인 창을 띄우게 함
+        });
+    };
+
+
+
+    // DB 저장 로직 수행 후 완료 페이지나 로그인으로 이동
+    //console.log('최종 가입 데이터:', formData);
+    //router.push('/login');
+  
+    // 최종 가입 완료 함수 (DB 전송 시)
+    const handleSubmit = async () => {
+        const authCode = sessionStorage.getItem('kakao_auth_code');
+        
+        const finalPayload = {
+            ...formData,
+            kakaoCode: authCode // 이제 POST 바디에 실어서 보낼 수 있음!
+        };
+
+        console.log("서버로 전송할 최종 데이터:", finalPayload);
+        // await api.post('/auth/signup', finalPayload);
+        
+        // 성공 후 스토리지 비우기
+        sessionStorage.clear();
+    };
+    
+
+
+  return (
+    <>
+    {/* 보안: 환경 변수에서 키를 가져오고 로드 완료 후 init 실행 */}
+    <Script
+        src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.0/kakao.min.js"
+        onLoad={initKakao}
+        strategy="afterInteractive" // 스크립트 로드 타이밍 최적화
+    />
+
+    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 px-6">
+      <div className="sm:mx-auto sm:w-full sm:max-w-md flex flex-col items-center">
+        <Logo type="symbol" className="w-12 h-12 mb-4" />
+        <h2 className="text-center text-3xl font-black text-gray-900 tracking-tight">
+          {step === 1 ? '회원정보 입력' : '본인 확인'}
+        </h2>
+        <p className="mt-2 text-center text-sm text-gray-500">
+          서비스 이용을 위해 정보를 입력해주세요.
+        </p>
+      </div>
+
+      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+        <div className="bg-white py-8 px-6 shadow-xl rounded-2xl border border-gray-100">
+          
+          {step === 1 ? (
+            /* --- STEP 1: 정보 입력 --- */
+            <form className="space-y-5" onSubmit={handleNextStep}>
+              
+              <div>
+                <label className="block text-sm font-bold text-gray-700">이름</label>
+                <div className="mt-1 relative">
+                  <PersonIcon className="absolute left-3 top-3 text-gray-400" />
+                  <input name="userNm" type="text" required placeholder="홍길동"
+                    className="pl-10 block w-full border-gray-200 border rounded-xl p-2.5 focus:ring-[#488ad8] focus:border-[#488ad8] text-sm"
+                    onChange={handleChange} />
+                </div>
+              </div>
+
+              {/* 아이디 입력란 */}
+<div>
+  <label className="block text-sm font-bold text-gray-700">아이디</label>
+  <input 
+    name="userId" 
+    type="text" 
+    required 
+    // ★ 이 코드가 핵심입니다. 상태값(정규식 통과된 값)을 다시 input에 꽂아줍니다.
+    value={formData.userId || ''} 
+    placeholder="아이디를 입력하세요"
+    className="mt-1 block w-full border-gray-200 border rounded-xl p-2.5 focus:ring-[#488ad8] focus:border-[#488ad8] text-sm"
+    onChange={handleChange} 
+  />
+</div>
+
+              <div>
+                <label className="block text-sm font-bold text-gray-700">비밀번호</label>
+                <input name="userPw" type="password" required placeholder="비밀번호를 입력하세요"
+                  className="mt-1 block w-full border-gray-200 border rounded-xl p-2.5 focus:ring-[#488ad8] focus:border-[#488ad8] text-sm"
+                  onChange={handleChange} />
+              </div>
+
+
+              
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-bold text-gray-700">전화번호</label>
+                  <div className="mt-1 relative">
+                    <MobileIcon className="absolute left-3 top-3 text-gray-400" />
+                    <input name="telNo" type="tel" required placeholder="010-1234-5678"
+                      className="pl-10 block w-full border-gray-200 border rounded-xl p-2.5 focus:ring-[#488ad8] focus:border-[#488ad8] text-sm"
+                      onChange={handleChange} />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-700">생년월일</label>
+                  <div className="mt-1 relative">
+                    <CalendarIcon className="absolute left-3 top-3 text-gray-400" />
+                    <input name="birthDate" type="text" required placeholder="940101"
+                      className="pl-10 block w-full border-gray-200 border rounded-xl p-2.5 focus:ring-[#488ad8] focus:border-[#488ad8] text-sm"
+                      onChange={handleChange} />
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-gray-700">이메일</label>
+                <div className="mt-1 relative">
+                  <EnvelopeClosedIcon className="absolute left-3 top-3 text-gray-400" />
+                  <input name="email" type="email" required placeholder="example@erp.com"
+                    className="pl-10 block w-full border-gray-200 border rounded-xl p-2.5 focus:ring-[#488ad8] focus:border-[#488ad8] text-sm"
+                    onChange={handleChange} />
+                </div>
+              </div>
+
+              <button type="submit"
+                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-bold text-white bg-[#488ad8] hover:bg-[#3a72b5] transition-all active:scale-[0.98]">
+                다음 단계로
+              </button>
+            </form>
+          ) : (
+            /* --- STEP 2: 카카오 인증 유도 (무료 본인인증 느낌) --- */
+            <div className="text-center space-y-6 py-4">
+              <div className="flex justify-center">
+                <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center">
+                  <span className="text-2xl">💬</span>
+                </div>
+              </div>
+
+              {!isVerified ? (
+                /* A. 아직 인증 전: 카카오 인증 버튼만 노출 */
+                <div className="space-y-4">
+                <div>
+                    <h3 className="text-lg font-bold text-gray-900">카카오 인증이 필요합니다</h3>
+                    <p className="text-sm text-gray-500 mt-2">
+                    안전한 서비스 이용을 위해<br/>카카오톡으로 본인 확인을 진행합니다.
+                    </p>
+                    <p className="text-xs text-red-400 mt-2 font-medium">
+                        * 회원가입을 위해 카카오 인증이 필요합니다.
+                    </p>
+                </div>
+                
+                <button 
+                    type="button"
+                    onClick={handleKakaoVerify}
+                    className="w-full bg-[#FEE500] text-[#3c1e1e] px-10 py-4 rounded-2xl font-black hover:bg-[#fada0a] active:scale-95 transition-all flex items-center justify-center gap-3 shadow-md"
+                >
+                    <span>💬</span> 카카오로 인증하기
+                </button>
+
+                <button onClick={() => setStep(1)} className="text-xs text-gray-400 underline">
+                    정보 수정하러 가기
+                </button>
+                </div>
+            ) : (
+                /* B. 인증 완료 후: 최종 회원가입 버튼만 노출 */
+                <div className="space-y-4">
+                <div>
+                    <h3 className="text-lg font-bold text-blue-600">인증이 완료되었습니다!</h3>
+                    <p className="text-sm text-gray-500 mt-2">
+                    입력하신 정보로<br/>회원가입을 마무리해 주세요.
+                    </p>
+                </div>
+
+                <button
+                    type="button"
+                    onClick={handleSubmit}
+                    className="w-full py-4 rounded-2xl font-black transition-all shadow-lg bg-[#488ad8] text-white hover:bg-[#3a72b5] active:scale-95 cursor-pointer"
+                >
+                    회원가입 완료하기
+                </button>
+                
+                <p className="text-[10px] text-gray-400">
+                    인증 코드: {sessionStorage.getItem('kakao_auth_code')?.substring(0, 10)}...
+                </p>
+                </div>
+            )}
+        
+
+            </div>
+          )}
+
+          {/* 소셜 로그인 연동 염두 (하단 가이드) */}
+          <div className="mt-8">
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-100"></div></div>
+              <div className="relative flex justify-center text-xs uppercase"><span className="px-2 bg-white text-gray-400 font-medium">SNS 계정 연동 예정</span></div>
+            </div>
+            <div className="mt-6 grid grid-cols-3 gap-3">
+              <div className="flex justify-center py-2 px-4 border border-gray-100 rounded-lg bg-gray-50 opacity-50 cursor-not-allowed text-xs font-bold text-gray-400">NAVER</div>
+              <div className="flex justify-center py-2 px-4 border border-gray-100 rounded-lg bg-gray-50 opacity-50 cursor-not-allowed text-xs font-bold text-gray-400">GOOGLE</div>
+              <div className="flex justify-center py-2 px-4 border border-gray-100 rounded-lg bg-gray-50 opacity-50 cursor-not-allowed text-xs font-bold text-gray-400">KAKAO</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </>
+  );
+}
+
+
+
+// 회원가입 페이지"use client";
+/*
 import React from 'react';
 
 export default function SignupPage() {
@@ -9,7 +420,7 @@ export default function SignupPage() {
                 <h2 className="text-3xl font-black text-gray-800 mb-6 tracking-tighter">회원가입</h2>
                 <p className="text-gray-500 mb-8">우리 서비스의 새로운 멤버가 되어보세요.</p>
                 
-                {/* 여기에 회원가입 폼을 만들 예정입니다 */}
+                
                 <div className="space-y-4">
                     <div className="p-4 bg-blue-50 text-blue-600 rounded-xl text-sm font-medium">
                         회원가입 폼이 들어올 자리입니다.
@@ -19,3 +430,4 @@ export default function SignupPage() {
         </div>
     );
 }
+*/
