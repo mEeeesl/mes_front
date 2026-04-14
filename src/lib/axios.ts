@@ -46,6 +46,11 @@ api.interceptors.response.use(
         console.log(originalRequest);
 
 
+        // [핵심 수정 부분]
+        // 로그인, 회원가입이나 회원가입 콜백 페이지 등 에서는 로그인이 안 되어 있는 게 당연하므로 튕구면 안 됩니다.
+        const publicPaths = ['/login', '/signup', '/signup/callback', '/signup/register'];
+        const isPublicPath = publicPaths.some(path => window.location.pathname.includes(path));
+
         console.log("chk");
         console.log(originalRequest._retry);
         console.log(originalRequest.url.includes('/auth/reissue'))
@@ -78,7 +83,11 @@ api.interceptors.response.use(
                 // api 인스턴스말고 axios 기본 인스턴스를 사용해야 인터셉터 중복 호출을 피함 
                 // 401이 다시 나도 인터셉터가 중복실행되지 않음
                 // baseURL이 설정된 api 인스턴스가 아닌, 전체 경로 작성이 안전..
-                await axios.post('/api/auth/reissue', {}, {withCredentials:true});
+                console.log(isPublicPath);
+                // 로그인, 회원가입이나 회원가입 콜백 페이지 등 에서는 로그인이 안 되어 있는 게 당연하므로 호출할필요없음
+                if (!isPublicPath) {
+                    await axios.post('/api/auth/reissue', {}, {withCredentials:true});
+                }
 
                 // 재발급 성공 시 원래 요청 다시
                 // 재발급 성공 후 originalRequest의 헤더 등을 최신화할 필요가 있다면 여기서 수정
@@ -98,10 +107,7 @@ api.interceptors.response.use(
                     console.log("axiox.ts /// 토큰 자동 재발급 에러 시 ... typeof window !== 'undefined' 문 안에 /login 이동 처리를 넣을지말지..");
 
 
-                    // [핵심 수정 부분]
-                    // 로그인, 회원가입이나 회원가입 콜백 페이지 등 에서는 로그인이 안 되어 있는 게 당연하므로 튕구면 안 됩니다.
-                    const publicPaths = ['/login', '/signup', '/signup/callback'];
-                    const isPublicPath = publicPaths.some(path => window.location.pathname.includes(path));
+                    
 
                     if (!isPublicPath) {
                         console.log("인증이 필요한 페이지이므로 로그인으로 이동");

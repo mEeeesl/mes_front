@@ -142,6 +142,11 @@ export default function SignUpPage() {
     
     console.log("최종 전송 데이터:", finalPayload);
     
+    //임시임시!!! 테스트용
+    sessionStorage.clear(); // [중요] 가입 완료 후 스토리지 정리
+
+
+
     // TanStack Query 실행
     mutate(finalPayload);
     // 여기서 API 호출 후 성공 시 세션초기화 + 로그인페이지 이동
