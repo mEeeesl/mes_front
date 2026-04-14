@@ -15,9 +15,8 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
     const pathname = usePathname();
 
     // 인증 체크를 건너뛸 경로들 (Public Paths)
-    const publicPaths = ['/login', '/signup', '/signup/callback'];
+    const publicPaths = ['/login', '/signup', '/signup/callback', '/auth/signup/chk'];
     const isPublicPath = publicPaths.some(path => pathname.includes(path));
-
 
     /**
      * 2. 통합 훅 호출

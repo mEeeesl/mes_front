@@ -88,7 +88,8 @@ export const useAuth = (options = { enabled: true }) => {
                 // 에러 핸들링 : 정보를 못 가져오거나, 서버 에러(401 미인증 등)가 나도 앱이 죽지 않고 null을 반환하게 하여 자연스럽게 비로그인 상태를 유지
                 // 401 에러 등이 나면 비로그인 상태이므로 null 반환
                 // 세션이 만료되었거나 토큰이 DB에서 지워진 경우 (401, 403 등)
-                console.error("인증 실패 : " + err);
+                //console.error("인증 실패 : " + err);
+                
                 return null; // 미인증 시 자연스럽게 null 반환
             } finally {
                 // 렌더링 차단을 막기 위해 초기화 완료 처리

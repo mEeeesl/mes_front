@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Logo } from '@/components/common/Logo';
 import { useModalStore } from '@/stores/useModalStore';
-import { useSignupMutation } from '@/hooks/auth/useSignup';
+import { useSignup } from '@/hooks/auth/useSignup';
 import { 
   EnvelopeClosedIcon, 
   MobileIcon, 
@@ -28,6 +28,7 @@ export default function SignUpPage() {
   const [isMounted, setIsMounted] = useState(false);
   const [step, setStep] = useState(1);
   const [isVerified, setIsVerified] = useState(false);
+  //const [isCheckingId, setIsCheckingId] = useState(false);
   const [formData, setFormData] = useState({
     userNm: '',
     userId: '',
@@ -36,7 +37,7 @@ export default function SignUpPage() {
     birthDate: '',
     email: '',
   });
-  const { mutate, isPending } = useSignupMutation(); // 훅에서 mutate 꺼내기
+  const { checkId, isChecking, signup, isSigning } = useSignup(); // Hook
 
   // 2. 마운트 시점에 스토리지 데이터 로드 및 하이드레이션 준비
   useEffect(() => {
@@ -97,7 +98,7 @@ export default function SignUpPage() {
   };
 
   // 4. 유효성 검사 및 단계 이동
-  const handleNextStep = (e: React.FormEvent) => {
+  const handleNextStep = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (formData.userNm.length < 2) return showAlert("이름을 올바르게 입력해주세요.");
@@ -109,7 +110,21 @@ export default function SignUpPage() {
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     if (!emailRegex.test(formData.email)) return showAlert("올바른 이메일 형식이 아닙니다.");
 
-    setStep(2);
+    // 아이디 중복체크
+    try{
+      const res = await checkId(formData.userId);
+      console.log(res);
+      
+      if(res.cd === '0000') {
+        setStep(2);
+      } else {
+        showAlert(res.msg || "이미 사용중인 아이디입니다.");
+      }
+    } catch(error) {
+      // 훅 error 실행 후 이곳 실행
+    }
+
+    //setStep(2);
   };
 
   // 5. 카카오 SDK 초기화
@@ -143,12 +158,11 @@ export default function SignUpPage() {
     console.log("최종 전송 데이터:", finalPayload);
     
     //임시임시!!! 테스트용
-    sessionStorage.clear(); // [중요] 가입 완료 후 스토리지 정리
-
-
-
+    //sessionStorage.clear(); // [중요] 가입 완료 후 스토리지 정리
+    
     // TanStack Query 실행
-    mutate(finalPayload);
+    //mutate(finalPayload);
+    signup(finalPayload);
     // 여기서 API 호출 후 성공 시 세션초기화 + 로그인페이지 이동
     
   };
@@ -193,6 +207,9 @@ export default function SignUpPage() {
                     className="mt-1 block w-full border-gray-200 border rounded-xl p-2.5 focus:ring-[#488ad8] focus:border-[#488ad8] text-sm"
                     onInput={handleChange} // [수정] onChange 대신 onInput
                   />
+                  <span className="block text-[12px] mt-1 ml-1 text-[#488ad8]">
+                    ※ 한글만 입력가능
+                  </span>
                 </div>
 
                 {/* 아이디 */}
@@ -207,7 +224,7 @@ export default function SignUpPage() {
                     className="mt-1 block w-full border-gray-200 border rounded-xl p-2.5 focus:ring-[#488ad8] focus:border-[#488ad8] text-sm"
                     onInput={handleChange}
                   />
-                  <span className="block text-[10px] mt-1 ml-1 text-[#488ad8]">
+                  <span className="block text-[12px] mt-1 ml-1 text-[#488ad8]">
                     ※ 영문 소문자/숫자 조합 6~20자
                   </span>
                 </div>
@@ -277,7 +294,7 @@ export default function SignUpPage() {
 
                     <button type="submit"
                       className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-bold text-white bg-[#488ad8] hover:bg-[#3a72b5] transition-all active:scale-[0.98]">
-                      다음 단계로 (본인인증)
+                      {isChecking ? '중복 확인 중...' : '다음 단계로 (본인인증)'}
                     </button>
                   </div>
                 )}
@@ -315,11 +332,11 @@ export default function SignUpPage() {
                     </div>
                     <button
                       onClick={handleSubmit}
-                      disabled={isPending} // 통신 중일 때 버튼 비활성화
+                      disabled={isSigning} // 통신 중일 때 버튼 비활성화
                       //className="w-full py-4 rounded-2xl font-black shadow-lg bg-[#488ad8] text-white hover:bg-[#3a72b5] active:scale-95"
                       className="w-full py-4 rounded-2xl font-black shadow-lg bg-[#488ad8] text-white hover:bg-[#3a72b5] active:scale-95 flex items-center justify-center disabled:bg-gray-400 disabled:cursor-not-allowed"
                     >
-                      {isPending ? (
+                      {isSigning ? (
                           <span className="flex items-center gap-2">
                             처리 중...
                           </span>

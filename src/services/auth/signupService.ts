@@ -20,4 +20,12 @@ export const signupService = {
     const { data } = await api.post<ApiResponse<any>>('/auth/signup/register', payload);
     return data;
   },
+
+  /**
+   * 아이디 중복 체크
+   */
+  checkDuplicateId: async (userId: string): Promise<ApiResponse<any>> => {
+    const { data } = await api.post<ApiResponse<any>>('/auth/signup/chk', {userId: userId});
+    return data;
+  },
 };
