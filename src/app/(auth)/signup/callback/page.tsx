@@ -1,10 +1,11 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useModalStore } from '@/stores/useModalStore'; // Custom modal 스토어
 
-export default function KakaoCallback() {
+//export default function KakaoCallback() {
+function KakaoCallbackInner() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const code = searchParams.get('code');
@@ -22,8 +23,7 @@ export default function KakaoCallback() {
             // 여기서 alert을 띄우기 전에, 
             // 현재 페이지에서 getProfile 등이 호출되지 않도록 주의해야 합니다.
             
-            showAlert('카카오 인증에 성공했습니다!');
-            
+           
             // 인증 성공 후 가입 페이지의 '마지막 단계'로 이동
             // 이때 code를 쿼리스트링으로 들고 가서 가입 버튼 클릭 시 자바 백엔드로 전송
             //router.replace(`/signup?step=final&code=${code}`);
@@ -32,14 +32,18 @@ export default function KakaoCallback() {
             // 1. URL 파라미터 대신 세션 스토리지에 저장 (브라우저 끄면 날아감 - 보안상 적절)
             sessionStorage.setItem('kakao_auth_code', code);
 
+
+            showAlert('카카오 인증에 성공했습니다.', () => router.replace('/signup?step=final'));
+
             // 2. signup 페이지로 이동
-            router.replace('/signup?step=final');
+            //router.replace('/signup?step=final');
+            //window.location.href = '/signup'; //세션 동기화에는 더 유리
 
         } else {
             // 코드가 없으면 가입 페이지로 튕구기
             router.replace('/signup');
         }
-    }, [code, router]);
+    }, [code, router, showAlert]);
 
     return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-white">
@@ -47,4 +51,18 @@ export default function KakaoCallback() {
             <p className="mt-4 text-gray-500 font-medium">본인 확인 완료 중...</p>
         </div>
     );
+}
+
+// 2. 외부로 내보낼 메인 컴포넌트 (Suspense로 감싸기)
+export default function KakaoCallback() {
+  return (
+    <Suspense fallback={
+      <div className="flex flex-col items-center justify-center min-h-screen bg-white">
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-gray-200"></div>
+        <p className="mt-4 text-gray-500 font-medium">페이지를 불러오는 중...</p>
+      </div>
+    }>
+      <KakaoCallbackInner />
+    </Suspense>
+  );
 }

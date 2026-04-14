@@ -4,9 +4,9 @@
  */
 
 import api from '@/lib/axios'; // [ 공통 서버 통신 axios ]
-import { ApiResponse } from '../types/common/api'; // [ 백엔드 응답 데이터 공통 규격 ]
+import { ApiResponse } from '../../types/common/api'; // [ 백엔드 응답 데이터 공통 규격 ]
 import { UserMap, LoginRequest, LoginResponse, UserProfile } from '@/types/auth'; // [ 전용 로그인 데이터 규격 ]
-import { ApiError } from '../app/util/error';
+import { ApiError } from '../../app/util/error';
 
 export const authService = {
     /** 
