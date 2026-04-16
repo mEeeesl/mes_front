@@ -3,6 +3,7 @@ import { useRouter } from 'next/navigation';
 import { authService } from '@/services/auth/authService';
 import { useAuthStore } from '@/stores/authStore';
 import { useModalStore } from '@/stores/useModalStore';
+import { ApiResponse } from '../../types/common/api'; // [ 백엔드 응답 데이터 공통 규격 ]
 
 /**
  * 인증 관련 통합 비즈니스 로직 훅
@@ -110,6 +111,36 @@ export const useAuth = (options = { enabled: true }) => {
         retry: false, // 인증 에러는 재시도해도 실패하므로 false 설정
     });
 
+    // 3. 카카오 간편 로그인 뮤테이션
+    //const kakaoSimpleLoginMutation = useMutation({
+    const kakaoSimpleLoginMutation = useMutation<ApiResponse<any>, Error, string>({  
+        mutationFn: (code: string) => authService.socialLogin("kakao", code),
+        onSuccess: (res) => {
+            sessionStorage.clear();
+            
+            console.log("### [ socialLogin ] ###");
+            console.log(res);
+            //if(res){
+            if(res && res.cd === '0000') {
+                //showAlert(res.msg || "")
+                queryClient.setQueryData(['profile'], res.data.user);
+                router.push('/');
+            } else {
+                // 회원이 아닌 경우가 있을 수 있음
+                showAlert(res?.msg || "가입 도중 오류가 발생했습니다.", () => router.push('/login'));
+            }
+        },
+        onError: (error: any) => {
+            console.error('KakaoSimpleLogin Err ', error);
+            showAlert(error.response?.data?.msg || "서버 통신 중 에러가 발생했습니다.", () => router.push('/login'));
+        }
+
+        
+
+        // 원래 여기서 onSuccess/onError를 하지만,
+        // 페이지 특화 로직은 호출부에서 해도됨
+    });
+
     return {
         login: loginMutation.mutate,
         isLoggingIn: loginMutation.isPending,
@@ -117,5 +148,9 @@ export const useAuth = (options = { enabled: true }) => {
         user: profileQuery.data,
         isProfileLoading: profileQuery.isLoading,
         //isInitialized, // Zustand 상태를 여기서 함께 리턴해주면 더 편리
+
+        // 간편 로그인_카카오
+        simpleLoginKakao: kakaoSimpleLoginMutation.mutate,
+        isLoginingKaKao: kakaoSimpleLoginMutation.isPending,
     };
 };

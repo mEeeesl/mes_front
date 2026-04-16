@@ -90,14 +90,50 @@ export const authService = {
         return res.user;
     },
 
-    // 일반 회원가입
-    signup: async (userData: any) => {
-        //const { data } = await axios.post('/auth/signup', userData);
-        //return data;
-    },
-    // 소셜 로그인 (카카오, 구글 등 공통 처리 가능)
-    socialLogin: async (provider: 'kakao' | 'google' | 'naver', code: string) => {
-        //const { data } = await axios.post(`/auth/social/${provider}`, { code });
-        //return data;
+    
+    /**
+     * 소셜 로그인 공통 처리
+     * @param provider 'kakao' | 'google' | 'naver'
+     * @param code 인증 코드
+     * @returns data(userNm?, userId? cd?)
+     */
+    
+    socialLogin: async (provider: string, code: string) : Promise<ApiResponse<any>> => {
+        const response = await api.post<ApiResponse<UserMap>>(`/auth/social/${provider}/login`, { provider, code }) as any;
+
+        console.log(response);
+
+        // 2. response.data = ApiResponse<UserMap> 타입
+        // 여기서 code, message, data를 꺼냅니다.
+        const { cd, msg, data: res } = response;
+        
+        
+
+        if(cd === "401") { // 아이디 비밀번호 재확인 필요 코드
+            console.log("authService >> 401 ");
+            throw new ApiError(cd, "authService >> 서버에서 준 메시지 : " + msg);
+        } else if(cd !== "0000") { // 기타 사유 실패 코드
+            console.log("authService >> !== 0000 ");
+            throw new Error(msg || "authService >> 로그인 실패 응답 [ axios 에러 / 서버 에러 ] 등");
+        }
+
+        return response;
     }
+
+    /*
+    socialLogin: async (provider: 'kakao' | 'google' | 'naver', code: string) => {
+        const { data } = await api.post(`/auth/social/${provider}`, { code });
+        return data;
+    },
+    */
+
+
+    /**
+     * 카카오 간편 로그인
+     *
+    simpleLoginKakao: async (code: string): Promise<ApiResponse<any>> => {
+        const { data } = await api.post<ApiResponse<any>>('/auth/social/kakao', {code: code});
+        return data;
+    }
+        */
 };

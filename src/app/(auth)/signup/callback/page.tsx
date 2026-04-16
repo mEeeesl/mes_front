@@ -3,46 +3,67 @@
 import { useEffect, useRef, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useModalStore } from '@/stores/useModalStore'; // Custom modal 스토어
+import { useSignup } from '@/hooks/auth/useSignup';
+import { useAuth } from '@/hooks/login/useAuth';
 
 //export default function KakaoCallback() {
 function KakaoCallbackInner() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const code = searchParams.get('code');
+  const state = searchParams.get('state');
   const showAlert = useModalStore((state) => state.showAlert);
   const isProcessing = useRef(false); // StrictMode 중복 실행 방지
+
+  const { simpleLoginKakao, isLoginingKaKao } = useAuth(); // Hook
+  
 
   useEffect(() => {
         // 이미 처리 중이면 중단
         if (isProcessing.current) return;
         
-        if (code) {
-            isProcessing.current = true;
-            console.log('카카오 인증 코드 획득:', code);
+        // 1. 로그인(KAKAO_LOGIN/NAVER_LOGIN/GOOGLE_LOGIN) OR 회원가입
+        const reqType = sessionStorage.getItem("REQ_AUTH_TYPE");
+        console.log("######################");
+        console.log(state);
 
-            // 여기서 alert을 띄우기 전에, 
-            // 현재 페이지에서 getProfile 등이 호출되지 않도록 주의해야 합니다.
+        if(!code) {
+            showAlert("잘못된 접근입니다.", () => router.replace('/login'));
+            return;
+        }
+
+        isProcessing.current = true;
+
+        // [ 간편 로그인 ]
+        if(reqType?.endsWith("_LOGIN")) {
             
-           
-            // 인증 성공 후 가입 페이지의 '마지막 단계'로 이동
-            // 이때 code를 쿼리스트링으로 들고 가서 가입 버튼 클릭 시 자바 백엔드로 전송
-            //router.replace(`/signup?step=final&code=${code}`);
+            // 카카오
+            if(reqType?.startsWith("KAKAO")){
+                sessionStorage.setItem('kakao_auth_code', code);
+                simpleLoginKakao(code);
 
+            // 구글
+            } else if(reqType?.startsWith("GOOGLE")){
+
+
+            // 네이버    
+            } else if(reqType?.startsWith("NAVER")){
+
+
+            }
+
+        // [ 회원가입 ]
+        } else {
 
             // 1. URL 파라미터 대신 세션 스토리지에 저장 (브라우저 끄면 날아감 - 보안상 적절)
             sessionStorage.setItem('kakao_auth_code', code);
 
-
+            // 2. 간편 로그인 : sessionStorage.getItem("LOGIN_TYPE", "KAKAO");           
             showAlert('카카오 인증에 성공했습니다.', () => router.replace('/signup?step=final'));
-
-            // 2. signup 페이지로 이동
-            //router.replace('/signup?step=final');
             //window.location.href = '/signup'; //세션 동기화에는 더 유리
 
-        } else {
-            // 코드가 없으면 가입 페이지로 튕구기
-            router.replace('/signup');
         }
+        
     }, [code, router, showAlert]);
 
     return (

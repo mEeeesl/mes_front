@@ -8,14 +8,18 @@ import { ApiResponse } from './common/api';
 
 // 응답 규격 Map
 export type UserMap = Record<string, string | any>;
-
+export type dataMap = Record<string, string | any>;
 
 /**********************************************/
 // 내가 작성한 코드 [S]
 
+// 공통 응답 규격 (단건)
+export type ApiResData = ApiResponse<dataMap>;
+
 // 유저정보 응답 규격 (단건)
 export type LoginResponse = ApiResponse<UserMap>;
 export type UserProfile = ApiResponse<UserMap>;
+
 
 /** 리스트 형태의 응답 (단건 혹은 복수건) (리스트 안에는 맵이 있음) */
 //export type ListMapResponse<T = DataMap> = T[];

@@ -48,14 +48,9 @@ api.interceptors.response.use(
 
         // [핵심 수정 부분]
         // 로그인, 회원가입이나 회원가입 콜백 페이지 등 에서는 로그인이 안 되어 있는 게 당연하므로 튕구면 안 됩니다.
-        const publicPaths = ['/login', '/signup', '/signup/callback', '/signup/register', '/auth/signup/chk'];
+        const publicPaths = ['/', '/login', '/signup', '/signup/callback', '/signup/register', '/auth/signup/chk'];
         const isPublicPath = publicPaths.some(path => window.location.pathname.includes(path));
 
-        console.log("############################");
-        console.log("chk");
-        console.log(originalRequest.url);
-        console.log(originalRequest._retry);
-        console.log(originalRequest.url.includes('/signup'));
         // 루프방지
         // 이미 재시도 중인 요청이거나
         // 토큰 재발급이 실패한 거면 루프 종료
