@@ -42,7 +42,7 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
             <div style={loadingContainerStyle}>
                 <div style={loadingBoxStyle}>
                     <span style={spinnerStyle}></span>
-                    <p>인증 정보 확인 중...</p>
+                    <p>Loading</p>
                 </div>
             </div>
         );
