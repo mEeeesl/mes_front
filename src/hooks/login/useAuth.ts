@@ -126,16 +126,20 @@ export const useAuth = (options = { enabled: true }) => {
                 queryClient.setQueryData(['profile'], res.data.user);
                 router.push('/');
             } else {
+                queryClient.setQueryData(['profile'], null);
                 // 회원이 아닌 경우가 있을 수 있음
                 showAlert(res?.msg || "가입 도중 오류가 발생했습니다.", () => router.push('/login'));
             }
         },
         onError: (error: any) => {
+            queryClient.setQueryData(['profile'], null);
             console.error('KakaoSimpleLogin Err ', error);
             showAlert(error.response?.data?.msg || "서버 통신 중 에러가 발생했습니다.", () => router.push('/login'));
+        },
+        onSettled: () => {
+            
+            sessionStorage.removeItem('kakao_auth_code');
         }
-
-        
 
         // 원래 여기서 onSuccess/onError를 하지만,
         // 페이지 특화 로직은 호출부에서 해도됨

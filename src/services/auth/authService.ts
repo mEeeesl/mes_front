@@ -71,7 +71,11 @@ export const authService = {
         // 1. 먼저 Axios의 전체 응답(Response)을 받습니다.
         // any >> AxiosResponse<UserProfile>이 아니라 내가 정의한 ApiResponse를 직접 반환한다는 것을 제네릭으로 알려줘야함
         const response = await api.get<any, UserProfile>('/auth/profile');
+        console.log("------------------");
+        console.log("Res : ");
         console.log(response);
+        console.log("------------------");
+        
         
     
         // 2. response.data = ApiResponse<UserMap> 타입
@@ -104,6 +108,7 @@ export const authService = {
     socialLogin: async (provider: string, code: string) : Promise<ApiResponse<any>> => {
         const response = await api.post<ApiResponse<UserMap>>(`/auth/social/${provider}/login`, { provider, code }) as any;
 
+        console.log("authService.SocialLogin...");
         console.log(response);
 
         // 2. response.data = ApiResponse<UserMap> 타입
@@ -114,10 +119,10 @@ export const authService = {
 
         if(cd === "401") { // 아이디 비밀번호 재확인 필요 코드
             console.log("authService >> 401 ");
-            throw new ApiError(cd, "authService >> 서버에서 준 메시지 : " + msg);
+            throw new ApiError(cd, "authService >> 서버에서 준 메시지 : " + msg); // useMutation.onError로 던짐
         } else if(cd !== "0000") { // 기타 사유 실패 코드
             console.log("authService >> !== 0000 ");
-            throw new Error(msg || "authService >> 로그인 실패 응답 [ axios 에러 / 서버 에러 ] 등");
+            throw new Error(msg || "authService >> 로그인 실패 응답 [ axios 에러 / 서버 에러 ] 등"); // useMutation.onError로 던짐
         }
 
         return response;

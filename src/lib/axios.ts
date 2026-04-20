@@ -83,7 +83,13 @@ api.interceptors.response.use(
                 console.log(isPublicPath);
                 // 로그인, 회원가입이나 회원가입 콜백 페이지 등 에서는 로그인이 안 되어 있는 게 당연하므로 호출할필요없음
                 if (!isPublicPath) {
-                    await axios.post('/api/auth/reissue', {}, {withCredentials:true});
+                    //await axios.post('/api/auth/reissue', {}, {withCredentials:true});
+                    // [수정] 상대 경로 /api/auth/reissue는 Vercel 자기 자신에게 보낼 위험이 있음
+                    // baseURL이 포함된 절대 경로로 호출해야 합니다.
+                    await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/auth/reissue`, {}, { 
+                        withCredentials: true 
+                    });
+
                 }
 
                 // 재발급 성공 시 원래 요청 다시
