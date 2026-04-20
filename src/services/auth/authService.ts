@@ -69,11 +69,14 @@ export const authService = {
 
         /** 2026.04.09 빌드 에러 조치 */
         // 1. 먼저 Axios의 전체 응답(Response)을 받습니다.
-        const response = await api.get<UserProfile>('/auth/profile');
+        // any >> AxiosResponse<UserProfile>이 아니라 내가 정의한 ApiResponse를 직접 반환한다는 것을 제네릭으로 알려줘야함
+        const response = await api.get<any, UserProfile>('/auth/profile');
+        console.log(response);
+        
     
         // 2. response.data = ApiResponse<UserMap> 타입
         // 여기서 code, message, data를 꺼냅니다.
-        const { cd, msg, data: res } = response.data;
+        const { cd, msg, data: res } = response;
 
 
         /**
