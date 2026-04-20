@@ -1,24 +1,44 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, Suspense } from 'react';
 import Image from 'next/image';
 import Script from 'next/script';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/hooks/login/useAuth'; // 리팩토링된 훅
 import CustomInput from '@/components/common/CustomInput';
 import { useModalStore } from '@/stores/useModalStore';
 
-export default function LoginPage() {
+
+
+
+
+
+// [1] 실제 로그인 로직과 UI를 담은 내부 컴포넌트
+function LoginForm() {
+
     const router = useRouter();
     const { login, isLoggingIn, user } = useAuth(); // 로직 집약적 추출
     const [formData, setFormData] = useState({ userId: '', password: '' });
     const showAlert = useModalStore((state) => state.showAlert);
+    const searchParams = useSearchParams();
+    const redirect = searchParams.get('redirect');
 
     // 로그인 상태라면 접근 차단
     //이미 로그인된 유저가 로그인 후 뒤로가기로 접근 시 홈으로 튕겨내기
     useEffect(() => {
+        if (user) {
+            // 이미 로그인된 유저가 들어왔을 때도 redirect 파라미터가 있다면 그곳으로 보내주는 게 친절한 설계입니다.
+            const targetPath = redirect ? decodeURIComponent(redirect) : '/';
+            // Next.js App Router의 안정성을 위해 refresh 후 이동
+            router.refresh(); 
+            router.replace(targetPath);
+        }
+    }, [user, router, redirect]); // redirect를 의존성 배열에 추가
+    /*
+    useEffect(() => {
         if (user) router.replace('/');
     }, [user, router]);
+    */
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -48,6 +68,9 @@ export default function LoginPage() {
         }
 
         sessionStorage.setItem("REQ_AUTH_TYPE", "KAKAO_LOGIN");
+        if (redirect) {
+            sessionStorage.setItem('login_redirect', redirect);
+        }
 
         window.Kakao.Auth.authorize({
             redirectUri: `${window.location.origin}/signup/callback`,
@@ -182,5 +205,26 @@ export default function LoginPage() {
             </div>
         </div>
         </>
+    );
+    
+}
+
+
+
+
+
+
+
+export default function LoginPage() {
+
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen flex items-center justify-center bg-gray-50">
+                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#488ad8]"></div>
+                <p className="ml-3 text-gray-500">로그인 화면을 불러오는 중입니다...</p>
+            </div>
+        }>
+            <LoginForm />
+        </Suspense>
     );
 }

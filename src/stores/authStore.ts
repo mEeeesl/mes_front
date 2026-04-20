@@ -1,24 +1,34 @@
 /** Zustand 설정 */
 import { create } from 'zustand';
+
 /*
 유저 정보(User) 자체는 TanStack Query의 캐시에서 꺼내쓰도록 처리
 Zustand는 "서버에서 데이터를 가져왔는지(초기화)" 여부만 관리하도록 처리
 */
+import { UserMap } from '@/types/auth';
+
+interface User { // 유저 객체 타입 정의
+  id: string;
+  name: string;
+  //email: string;
+  // ... 필요한 필드들 추가
+}
+
 interface AuthState {
+    user: UserMap | null;
     isInitialized: boolean;
+    setUser: (user: UserMap | null) => void;
     setInitialized: (val: boolean) => void;
 
-    /** 2026.04.09 빌드 에러 조치 */
-    // [추가] 로그아웃 액션 정의
     logout: () => void; 
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
+    user: null,
     isInitialized: false, // 앱 실행 시 최초 1회 인증 체크 완료 여부
+    setUser: (user) => set({ user }),
     setInitialized: (val) => set({ isInitialized: val }),
 
-    /** 2026.04.09 빌드 에러 조치 */
-    // [추가] 로그아웃 시 상태 초기화
     logout: () => set({ isInitialized: false }), 
 }));
 

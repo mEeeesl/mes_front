@@ -5,14 +5,10 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 export function middleware(request: NextRequest) {
-    // 1. 쿠키에서 인증 토큰 여부 확인 
-    // (백엔드에서 심어준 쿠키 이름 확인 필요, 예: 'JSESSIONID' 또는 'accessToken')
-    // 여기서는 범용적인 'accessToken' 혹은 'JSESSIONID' 등을 체크한다고 가정합니다.
-    const token = request.cookies.get('accessToken')?.value;
-    const { pathname } = request.nextUrl;
-    console.log("middelware.ts ... token ? " + token);
-    console.log("middelware.ts ... nextUrl ? " + pathname);
-
+    
+    const token = request.cookies.get('accessToken')?.value; // 쿠키에서 인증 토큰 여부 확인 
+    const { pathname, search } = request.nextUrl; // 현재 Path + 리다이렉트용 prevUri
+    
     // 2. 로그인이 필요한 경로 정의
     const authRequiredPaths = [
         '/mypage',
@@ -30,7 +26,13 @@ export function middleware(request: NextRequest) {
     // 로그인이 안 됐는데 마이페이지 가려고 하면 -> 로그인으로 보내기
     // 보호된 페이지인데 토큰이 없다? 로그인으로 보내기
     if (isAuthPage && !token) {
-        return NextResponse.redirect(new URL('/login', request.url));
+        
+        // prevUri(쿼리스트링-search)를 로그인 페이지 같이 보냄
+        const prevUri = encodeURIComponent(`${pathname}${search}`);
+        const loginUrl = new URL(`/login?redirect=${prevUri}`, request.url);
+
+        //return NextResponse.redirect(new URL('/login', request.url));
+        return NextResponse.redirect(loginUrl);
     }
 
     // 이미 로그인 됐는데 로그인 페이지 가려고 하면 -> 홈으로 보내기
@@ -49,6 +51,7 @@ export const config = {
     //matcher: ['/mypage/:path*', '/login'],
     matcher: [
         '/mypage/:path*',
+        '/login',
         '/dashboardaaaaaa/:path*',
         '/settingsaaaaaa/:path*',
         '/adminaaaaaaaa/:path*'

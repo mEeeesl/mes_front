@@ -7,6 +7,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/login/useAuth';
 import { HomeIcon, CaretLeftIcon, HamburgerMenuIcon, AvatarIcon, Cross1Icon, ChevronDownIcon } from '@radix-ui/react-icons';
 import { Logo } from '@/components/common/Logo';
+import Image from 'next/image';
 
 export default function Header() {
     /*
@@ -74,8 +75,10 @@ export default function Header() {
                                     */}
                                     {/* PC 텍스트 로고 (기존 유지) 
                                     <span className="hidden md:block font-bold text-lg text-[#488ad8] tracking-tight">Global ERP</span>
-                                    */}
                                     <Logo type="full" />
+                                    */}
+                                    
+                                    <Image src="/images/common/logo/logo3.jpg" alt="M" width={40} height={40} priority />
                                 </Link>
                             </>
                         ) : (
@@ -89,7 +92,8 @@ export default function Header() {
                                 </button>
                                 {/* PC: 메인이 아닐 때 뒤로가기 우측에 Symbol 로고 노출 */}
                                 <Link href="/" className="hidden md:block">
-                                    <Logo type="symbol" className="w-8 h-8" />
+                                    {/*<Logo type="symbol" className="w-8 h-8" />*/}
+                                    <Image src="/images/common/logo/logo3.jpg" alt="M" width={40} height={40} priority />
                                 </Link>
                             </>
                         )}
@@ -101,7 +105,8 @@ export default function Header() {
                         {!isMain && (
                             <div className="md:hidden absolute left-1/2 -translate-x-1/2">
                                 <Link href="/">
-                                    <Logo type="symbol" className="w-9 h-9" />
+                                    {/*<Logo type="symbol" className="w-9 h-9" />*/}
+                                    <Image src="/images/common/logo/logo3.jpg" alt="M" width={40} height={40} priority />
                                 </Link>
                             </div>
                         )}
@@ -208,7 +213,10 @@ export default function Header() {
                             <button onClick={() => { router.push('/login'); toggleMenu(); }} className="text-[#488ad8] font-bold text-lg">로그인</button>
                         )}
                         <div className="flex items-center gap-2">
-                            <button onClick={() => { router.push('/'); toggleMenu(); }}><Logo type="symbol" className="w-8 h-8" /></button>
+                            <button onClick={() => { router.push('/'); toggleMenu(); }}>
+                                {/*<Logo type="symbol" className="w-8 h-8" />*/}
+                                <Image src="/images/common/logo/logo3.jpg" alt="M" width={40} height={40} priority />
+                            </button>
                             <button onClick={() => { router.push('/mypage'); toggleMenu(); }}><AvatarIcon className="w-7 h-7 text-gray-400" /></button>
                         </div>
                     </div>
