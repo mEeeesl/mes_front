@@ -7,7 +7,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/hooks/login/useAuth'; // 리팩토링된 훅
 import CustomInput from '@/components/common/CustomInput';
 import { useModalStore } from '@/stores/useModalStore';
-
+import { useFindStore } from '@/stores/auth/find/useFindStore';
 
 
 
@@ -22,6 +22,7 @@ function LoginForm() {
     const showAlert = useModalStore((state) => state.showAlert);
     const searchParams = useSearchParams();
     const redirect = searchParams.get('redirect');
+    const { setActiveTab } = useFindStore(); // 스토어 액션 가져오기
 
     // 로그인 상태라면 접근 차단
     //이미 로그인된 유저가 로그인 후 뒤로가기로 접근 시 홈으로 튕겨내기
@@ -41,15 +42,29 @@ function LoginForm() {
     */
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.currentTarget; // [수정] e.target 대신 e.currentTarget 사용
+        let newValue = value;
+
+        if (name === 'userId') newValue = value.toLowerCase().replace(/[^a-z0-9]/g, '');
+        else if (name === 'password') newValue = value.replace(/[^a-z0-9!@#$%^&*()]/g, '');
+        
+        setFormData(prev => ({ ...prev, [name]: newValue }));
+
+        /*
         const { name, value } = e.target;
         setFormData((prev) => ({ 
             ...prev, // 이전 값
             [name]: value 
         }));
+        */
     };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+
+        if (formData.userId.length < 6) return showAlert("아이디를 6자 이상으로 입력해주세요.");
+        if (formData.password.length < 9) return showAlert("비밀번호를 9자 이상으로 입력해주세요.");
+
         login(formData); // 깔끔한 호출
     };
 
@@ -86,6 +101,11 @@ function LoginForm() {
     const handleReadySoon = (name: string) => {
         showAlert(`${name} 로그인은 현재 준비 중입니다.`);
     };
+
+    const handleFindTape = (type: 'ID' | 'PW') => {
+        setActiveTab(type);
+        router.push('/login/find');
+    }
 
     return (
         <>
@@ -195,11 +215,11 @@ function LoginForm() {
 
                     {/* 하단 보조 메뉴 */}
                     <div className="mt-10 flex justify-center gap-6 text-xs font-bold text-gray-400">
+                        <button onClick={() => handleFindTape('ID')} className="hover:text-[#488ad8] transition-colors cursor-pointer">아이디 찾기</button>
+                        <div className="w-[1px] h-3 bg-gray-200 self-center" />
+                        <button onClick={() => handleFindTape('PW')} className="hover:text-[#488ad8] transition-colors cursor-pointer">비밀번호 찾기</button>                     
+                        <div className="w-[1px] h-3 bg-gray-200 self-center" />
                         <button onClick={() => {router.push('/signup');}} className="hover:text-[#488ad8] transition-colors cursor-pointer">회원가입</button>
-                        <div className="w-[1px] h-3 bg-gray-200 self-center" />
-                        <button className="hover:text-[#488ad8] transition-colors cursor-pointer">아이디 찾기</button>
-                        <div className="w-[1px] h-3 bg-gray-200 self-center" />
-                        <button className="hover:text-[#488ad8] transition-colors cursor-pointer">비밀번호 찾기</button>                     
                     </div>
                 </div>
             </div>

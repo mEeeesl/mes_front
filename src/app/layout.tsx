@@ -13,6 +13,8 @@ export const metadata: Metadata = {
   },
 };
 
+  // Brand Color ( #488ad8 )
+  // Round ( 2x1 / 3x1 )
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (

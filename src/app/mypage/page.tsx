@@ -87,35 +87,7 @@ console.log("MyPage 렌더링 시도");
     }
 
 /** TO-BE [E] */
-/** AS-IS    
-    // 2026.04.09 
-    // Zustand에서 초기화 완료 여부를 가져옵니다. (새로고침 시 false -> true 대기)
-    const isInitialized = useAuthStore((state) => state.isInitialized);
-    
-    // [방어 코드 1] 데이터 로딩 중 처리
-    // 앱이 구동되자마자 !user 조건에 걸려 튕기는 것을 방지합니다.
-    if (!isInitialized || isProfileLoading) {
-        return (
-            <div className="flex items-center justify-center min-h-screen bg-gray-50">
-                <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#488ad8] mx-auto mb-4"></div>
-                    <p className="text-gray-500 font-bold">사용자 정보를 확인 중입니다...</p>
-                </div>
-            </div>
-        );
-    }
 
-
-    // 미들웨어에서 1차로 막아주지만, Zustand 상태가 비어있을 경우를 대비한 안전장치 -- Zustand로 관리하는 경우
-    // 미들웨어에서 1차로 막아주지만, 리액트 컴포넌트 차원에서의 안전장치 -- TanStack Query에서 관리하는 경우
-    if (!user) {
-        return (
-        <div style={{ textAlign: 'center', marginTop: '50px' }}>
-            <p>사용자 정보를 불러올 수 없습니다. 다시 로그인해 주세요.</p>
-        </div>
-        );
-    }
-*/    
     return (
 
 
@@ -131,7 +103,7 @@ console.log("MyPage 렌더링 시도");
                     <RocketIcon className="w-4 h-4" />
                 </button>
                 </div>
-                <h2 className="text-3xl font-black text-gray-800 tracking-tighter">{user.userNm} 프로</h2>
+                <h2 className="text-3xl font-black text-gray-800 tracking-tighter">{user.userNm}</h2>
                 <p className="text-[#488ad8] font-bold mt-1">개발팀 / 선임 연구원</p>
             </div>
             </div>
@@ -167,11 +139,16 @@ console.log("MyPage 렌더링 시도");
                 <span className="font-bold text-gray-600 group-hover:text-[#488ad8]">비밀번호 변경</span>
                 <ChevronRightIcon className="text-gray-300 group-hover:text-[#488ad8]" />
                 </button>
+                {/*
                 <button className="flex items-center justify-between p-6 bg-red-50/50 rounded-3xl border border-red-100 hover:bg-red-50 transition-all group">
                 <span className="font-bold text-red-500 flex items-center gap-2">
-                    <ExitIcon /> 로그아웃
+                    <ExitIcon /> 
+                    <button onClick={() => { if(confirm('로그아웃 하시겠습니까?')) logoutMutate(); }} className="text-sm font-bold hover:text-[#3a72b5] transition-colors">
+                        로그아웃
+                    </button>
                 </span>
                 </button>
+                */}
             </div>
             </div>
         </div>

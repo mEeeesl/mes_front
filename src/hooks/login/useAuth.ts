@@ -28,7 +28,6 @@ export const useAuth = (options = { enabled: true }) => {
     //const setInitialized = useAuthStore((state) => state.setInitialized);
     //const setUser = useAuthStore((state) => state.setUser);
     const showAlert = useModalStore((state) => state.showAlert);
-
     /**
      * 서버 데이터 변경(CUD) 시 useMutation을 사용
      */
@@ -101,6 +100,8 @@ export const useAuth = (options = { enabled: true }) => {
     /** [3] 프로필 조회 Query (앱 구동 시, 새로고침 시 유저 정보 최신화) */
     const profileQuery = useQuery({
         queryKey: ['profile'],
+        //queryFn: authService.getProfile,
+        
         queryFn: async () => {
             try {
                 console.log('useAuth.ts 훅 :: 프로필 조회 :: ');
@@ -125,8 +126,10 @@ export const useAuth = (options = { enabled: true }) => {
                 setInitialized(true);
             }
         },
+        
         enabled: options.enabled, // [추가] 외부에서 제어 가능하게 설정
         staleTime: Infinity,
+        //staleTime: 1000 * 60 * 5, // 5분 정도는 캐시 인정.. 
         /**
          *  로그아웃 전까지 유저 정보는 계속 유지
             장점: 페이지 이동 시마다 /profile API를 호출하지 않아 매우 빠릅니다.
@@ -135,6 +138,7 @@ export const useAuth = (options = { enabled: true }) => {
          */
         gcTime: 1000 * 60 * 60, // 1시간 캐싱
         retry: false, // 인증 에러는 재시도해도 실패하므로 false 설정
+        //refetchOnWindowFocus: false,
     });
 
     // 3. 카카오 간편 로그인 뮤테이션

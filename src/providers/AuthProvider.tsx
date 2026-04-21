@@ -58,6 +58,7 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
 */
     return <>{children}</>;
 }
+/*
 
 // 기존 스타일 유지 (생략 없이 사용하세요)
 const loadingContainerStyle: React.CSSProperties = {
@@ -68,3 +69,5 @@ const spinnerStyle: React.CSSProperties = {
     display: 'inline-block', width: '30px', height: '30px', border: '3px solid rgba(0,0,0,.1)',
     borderTopColor: '#488ad8', borderRadius: '50%', animation: 'spin 1s ease-in-out infinite', marginBottom: '10px'
 };
+
+*/

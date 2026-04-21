@@ -5,6 +5,17 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { useState } from 'react';
 
+export const queryClient = new QueryClient({
+    defaultOptions: {
+        queries: {
+            // 창을 다시 포커스했을 때 서버 생존 확인 (자동으로 데이터를 다시 가져올지) 여부 (기본값 true)
+            refetchOnWindowFocus: true, 
+            // 데이터 요청 실패 시 재시도 횟수
+            retry: 1, // 실패 시 1번만 재시도
+        },
+    },
+});
+
 export default function QueryProvider({ children }: { children: React.ReactNode }) {
     // 1. QueryClient 인스턴스를 생성합니다. 
     // useState를 사용하여 리렌더링 시에도 동일한 client 인스턴스를 유지하게 합니다.

@@ -5,7 +5,7 @@
 
 import api from '@/lib/axios'; // [ 공통 서버 통신 axios ]
 import { ApiResponse } from '../../types/common/api'; // [ 백엔드 응답 데이터 공통 규격 ]
-import { UserMap, LoginRequest, LoginResponse, UserProfile } from '@/types/auth'; // [ 전용 로그인 데이터 규격 ]
+import { UserMap, dataMap, LoginRequest, LoginResponse, UserProfile } from '@/types/auth'; // [ 전용 로그인 데이터 규격 ]
 import { ApiError } from '../../app/util/error';
 
 export const authService = {
@@ -126,22 +126,22 @@ export const authService = {
         }
 
         return response;
-    }
-
-    /*
-    socialLogin: async (provider: 'kakao' | 'google' | 'naver', code: string) => {
-        const { data } = await api.post(`/auth/social/${provider}`, { code });
-        return data;
     },
-    */
-
 
     /**
-     * 카카오 간편 로그인
-     *
-    simpleLoginKakao: async (code: string): Promise<ApiResponse<any>> => {
-        const { data } = await api.post<ApiResponse<any>>('/auth/social/kakao', {code: code});
-        return data;
-    }
-        */
+     * 아이디 찾기 요청
+     */
+    findId: async (data: { name: string; email: string }) => {
+        const response = await api.post<any, ApiResponse<dataMap>>('/auth/findId', data);
+        return response;
+    },
+
+    /**
+     * 비밀번호 재설정 메일 발송 요청
+     */
+    findPw: async (data: { name: string; userId: string; email: string }) => {
+        const response = await api.post<any, ApiResponse<dataMap>>('/auth/findPw', data);
+        return response;
+    },
+
 };
