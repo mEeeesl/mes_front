@@ -85,12 +85,13 @@ api.interceptors.response.use(
 
                 try {
                     console.log('--- AccessToken 만료: 재발급 시도 ---');
-                    //if (!isPublicPath) {
+                    console.log('isPublicPath ? ' + isPublicPath);
+                    if (!isPublicPath) {
                         // 인터셉터가 없는 순수 axios로 재발급 요청
                         await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/auth/reissue`, {}, { 
                             withCredentials: true 
                         });
-                    //}
+                    }
                     
                     // 재발급 성공 시 원래 하려던 요청 재실행
                     return api(originalRequest);

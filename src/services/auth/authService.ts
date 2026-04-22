@@ -129,18 +129,55 @@ export const authService = {
     },
 
     /**
+     * [아이디/비밀번호 찾기] 이메일 내 인증코드
+     */
+    chkAuthCode: async (data: { name: string; email: string; authCode: string }) => {
+        const reqData = {
+            userNm: data.name,
+            email: data.email,
+            authCode: data.authCode,
+            type: "authChk"
+        };
+
+        const response = await api.post<any, ApiResponse<dataMap>>('/auth/find-auth-chk', reqData);
+        //const response = await api.post<any, ApiResponse<dataMap>>('/auth/findId', reqData);
+        
+        //const response = await api.post<any, ApiResponse<dataMap>>('/auth/findId', data);
+        return response;
+    },
+
+    /**
      * 아이디 찾기 요청
      */
-    findId: async (data: { name: string; email: string }) => {
-        const response = await api.post<any, ApiResponse<dataMap>>('/auth/findId', data);
+    findId: async (data: { name: string; email: string; authCode: string }) => {
+        const reqData = {
+            userNm: data.name,
+            email: data.email,
+            authCode: data.authCode,
+            type: "id"
+        };
+
+        const response = await api.post<any, ApiResponse<dataMap>>('/auth/find-auth-chk', reqData);
+        //const response = await api.post<any, ApiResponse<dataMap>>('/auth/findId', reqData);
+        
+        //const response = await api.post<any, ApiResponse<dataMap>>('/auth/findId', data);
         return response;
     },
 
     /**
      * 비밀번호 재설정 메일 발송 요청
      */
-    findPw: async (data: { name: string; userId: string; email: string }) => {
-        const response = await api.post<any, ApiResponse<dataMap>>('/auth/findPw', data);
+    findPw: async (data: { name: string; userId: string; email: string; authCode: string }) => {
+        const reqData = {
+            userId: data.userId,
+            userNm: data.name,
+            email: data.email,
+            authCode: data.authCode,
+            type: "pw"
+        };
+
+        const response = await api.post<any, ApiResponse<dataMap>>('/auth/findPw', reqData);
+        //const response = await api.post<any, ApiResponse<dataMap>>('/auth/findPw', data);
         return response;
     },
 
