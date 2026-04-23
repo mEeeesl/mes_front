@@ -85,9 +85,9 @@ export default function FindAccountPage() {
             handleVerifyCode();
             
             if (activeTab === 'ID') {
-                findId({ name, email, authCode });
+                findId({ activeTab, name, email, authCode });
             } else {
-                findPw({ name, userId, email, authCode });
+                findPw({ activeTab, name, userId, email, authCode });
             }
 
         
@@ -96,7 +96,7 @@ export default function FindAccountPage() {
             
             if (!emailRegex.test(email)) return showAlert("올바른 이메일 형식이 아닙니다.");
 
-            verifyAuthCode({ name, email, authCode });
+            verifyAuthCode({ activeTab, name, email, authCode });
 
             // 요청 성공 여부와 상관없이 발송 버튼 클릭 시 5초 쿨타임 시작
             setCoolDown(10);
@@ -232,7 +232,7 @@ export default function FindAccountPage() {
                                         onChange={handleAuthChange}
                                         maxLength={6}
                                         className="w-full px-4 py-3 border-2 border-blue-200 rounded-lg focus:outline-none focus:border-blue-500 text-center text-xl font-bold tracking-widest"
-                                        placeholder="000AAA"
+                                        placeholder="인증번호 6자리"
                                     />
                                 </div>
                                 <button

@@ -131,12 +131,12 @@ export const authService = {
     /**
      * [아이디/비밀번호 찾기] 이메일 내 인증코드
      */
-    chkAuthCode: async (data: { name: string; email: string; authCode: string }) => {
+    chkAuthCode: async (data: { activeTab: string, name: string; email: string; authCode: string }) => {
         const reqData = {
             userNm: data.name,
             email: data.email,
             authCode: data.authCode,
-            type: "authChk"
+            type: data.activeTab
         };
 
         const response = await api.post<any, ApiResponse<dataMap>>('/auth/find-auth-chk', reqData);
@@ -149,7 +149,7 @@ export const authService = {
     /**
      * 아이디 찾기 요청
      */
-    findId: async (data: { name: string; email: string; authCode: string }) => {
+    findId: async (data: { activeTab: string, name: string; email: string; authCode: string }) => {
         const reqData = {
             userNm: data.name,
             email: data.email,
@@ -167,7 +167,7 @@ export const authService = {
     /**
      * 비밀번호 재설정 메일 발송 요청
      */
-    findPw: async (data: { name: string; userId: string; email: string; authCode: string }) => {
+    findPw: async (data: { activeTab: string, name: string; userId: string; email: string; authCode: string }) => {
         const reqData = {
             userId: data.userId,
             userNm: data.name,

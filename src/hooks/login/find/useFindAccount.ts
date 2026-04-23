@@ -11,7 +11,7 @@ export const useFindAccount = (onSuccessCallback?: () => void) => {
 
   // 1. 아이디 찾기 뮤테이션
   //const findIdMutation = useMutation<ApiResponse<null>, Error, { name: string; email: string }>({
-  const verifyMutation = useMutation<ApiResponse<any>, Error, { name: string; email: string, authCode: string }>({
+  const verifyMutation = useMutation<ApiResponse<any>, Error, { activeTab:string, name: string; email: string, authCode: string }>({
     mutationFn: authService.chkAuthCode,
     onSuccess: (res) => {
       if (res.cd === '0000') {
@@ -28,7 +28,7 @@ export const useFindAccount = (onSuccessCallback?: () => void) => {
 
   // 1. 아이디 찾기 뮤테이션
   //const findIdMutation = useMutation<ApiResponse<null>, Error, { name: string; email: string }>({
-  const findIdMutation = useMutation<ApiResponse<any>, Error, { name: string; email: string, authCode: string }>({
+  const findIdMutation = useMutation<ApiResponse<any>, Error, { activeTab: string, name: string; email: string, authCode: string }>({
     mutationFn: authService.findId,
     onSuccess: (res) => {
       if (res.cd === '0000') {
