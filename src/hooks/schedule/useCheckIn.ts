@@ -6,8 +6,12 @@ import { checkInService } from '@/services/schedule/checkInService';
 
 const COMPANY = { 
     // 일원역
-    lat: 37.4836, // 위도 (Latitude): 37.4836
-    lng: 127.0844 // 경도 (Longitude): 127.0844
+    //lat: 37.4836, // 위도 (Latitude): 37.4836
+    //lng: 127.0844 // 경도 (Longitude): 127.0844
+    // Jara
+    lat: 37.2326866, // 위도 (Latitude):
+    lng: 127.3606248 // 경도 (Longitude):
+    
 };
 
 export const useCheckIn = () => {

@@ -14,6 +14,8 @@ export default function FindAccountPage() {
     
     const [isAuthSent, setIsAuthSent] = useState(false); // 인증번호 발송 여부
     const [authCode, setAuthCode] = useState(''); // 인증번호 입력값
+    const [resultData, setResultData] = useState<{ id?: string; tempPw?: string } | null>(null); // 서버에서 받은 아이디/비밀번호 결과를 저장할 상태
+
     // 훅을 부를 때 성공(onSuccess) 시 실행할 로직
     //const { findId, isFindingId, findPw, isFindingPw } = useFindAccount();
     const { verifyAuthCode, findId, isFindingId, findPw, isFindingPw } = useFindAccount(() => {
@@ -66,11 +68,13 @@ export default function FindAccountPage() {
         
     }
 
-    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    // 훅에서 Async로 내려주기에 await + Promise로 세팅
+    //const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
         // { 공통 로직 }
-        if (coolDown > 0) return; // 쿨타임 중 중복 클릭 방지
+        if (coolDown > 0 && !isAuthSent) return;  // 쿨타임 중 중복 클릭 방지
 
         const formData = new FormData(e.currentTarget);
         const name = formData.get('name') as string;
@@ -84,20 +88,53 @@ export default function FindAccountPage() {
         if(isAuthSent){
             handleVerifyCode();
             
-            if (activeTab === 'ID') {
-                findId({ activeTab, name, email, authCode });
-            } else {
-                findPw({ activeTab, name, userId, email, authCode });
-            }
+            try {
+                
+                if (activeTab === 'ID') {
+                    //findId({ activeTab, name, email, authCode }); 훅에서 retruen findId.mutate
+                    const res = await findId({ activeTab, name, email, authCode }); // 훅에서 retrun findId.mutateAsync로 내려주기에, 호출부는 Promise로 받음
+                    
+                    if (res.cd === '0000') {
+                        setResultData({ id: res.data }); 
+                    }
 
+
+                } else {
+                    //findPw({ activeTab, name, userId, email, authCode });
+                    const res = await findPw({ activeTab, name, userId, email, authCode });
+
+                    if (res.cd === '0000') {
+                        setResultData({ tempPw: res.data });
+                    }
+                }
+
+            } catch(error) {
+                // 에러는 훅의 onError에서 처리됨
+            }
         
         // { 인증번호 발송 전 }
         } else {
             
             if (!emailRegex.test(email)) return showAlert("올바른 이메일 형식이 아닙니다.");
 
-            verifyAuthCode({ activeTab, name, email, authCode });
+            verifyAuthCode({activeTab, name, userId, email, authCode}, {
+                onSuccess: (res) => {
+                    setIsAuthSent(true);
+                },
+                onError: (error) => {
+                    // 훅이나 서비스에서 throw한 Err
+                    showAlert(error.message);
+                }
+            })
+            /*
 
+            const res = await verifyAuthCode({ activeTab, name, email, authCode });
+
+            if(res.cd) {
+
+            }
+
+            */
             // 요청 성공 여부와 상관없이 발송 버튼 클릭 시 5초 쿨타임 시작
             setCoolDown(10);
         }
@@ -109,151 +146,195 @@ export default function FindAccountPage() {
 
     const isLoading = isFindingId || isFindingPw;
     // 버튼 비활성화 조건: 로딩 중이거나 쿨타임이 남았을 때
-    const isButtonDisabled = isLoading || coolDown > 0;
+    //const isButtonDisabled = isLoading || coolDown > 0;
+    const isButtonDisabled = isLoading || (coolDown > 0 && !isAuthSent);
 
     return (
         <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
             <div className="max-w-md w-full bg-white rounded-2xl shadow-xl overflow-hidden">
-                
-                <div className="p-8 text-center">
-                    <h2 className="text-2xl font-bold text-gray-800">계정 찾기</h2>
-                    
-                    <p className="text-gray-500 mt-2 text-sm"><span className="text-[15px] text-[#488ad8]">가입하신 정보</span>를 입력하여 본인 인증을 진행해 주세요.</p>
-                </div>
 
-                {/* Tab Menu */}
-                <div className="flex border-b">
-                    {(['ID', 'PW'] as const).map((tab) => (
-                        <button
-                            key={tab}
-                            onClick={() => {
-                                setActiveTab(tab);
-                                setFormValues({ name: '', userId: '', email: '' }); // 탭 변경 시 리셋
-                                //setCoolDown(0); // 탭 전환 시 쿨타임 초기화 여부
+                {/* resultData가 있으면 결과창을, 없으면 기존 폼을 보여줌 */}
+                {resultData ? (
 
-                            }}
-                            className={`flex-1 py-4 text-sm font-semibold transition-colors ${
-                                activeTab === tab ? 'border-b-2' : 'text-gray-400'
-                            }`}
-                            style={activeTab === tab ? { borderColor: brandColor, color: brandColor } : {}}
-                        >
-                            {tab === 'ID' ? '아이디 찾기' : '비밀번호 찾기'}
-                        </button>
-                    ))}
-                </div>
-
-                <div className="p-8">
-                    <form onSubmit={handleSubmit} className="space-y-5">
+                    <div className="p-10 text-center animate-in fade-in zoom-in-95 duration-500">
+                        <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <svg className="w-8 h-8 text-[#488ad8]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                        </div>
+                        <h2 className="text-2xl font-bold text-gray-800 mb-2">계정 확인 완료</h2>
+                        <p className="text-gray-500 text-sm mb-8">가입하신 정보는 다음과 같습니다.</p>
                         
-                        {/* 1. 이름 입력 (항상 노출) */}
-                        <div className="transition-all duration-300 ease-in-out">
-                            <label className="block text-sm font-medium text-gray-700 mb-1">이름</label>
-                            <input
-                                name="name"
-                                value={formValues.name}
-                                onChange={handleChange}
-                                required
-                                className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2"
-                                style={{ '--tw-ring-color': brandColor } as any}
-                                placeholder="가입한 이름을 입력하세요"
-                            />
-                            <span className="block text-[11px] mt-1.5 ml-1 text-[#488ad8]">※ 한글만 입력가능</span>
+                        <div className="bg-gray-50 rounded-xl p-6 mb-8 border border-dashed border-gray-200">
+                            {activeTab === 'ID' ? (
+                                <div>
+                                    <span className="text-xs text-gray-400 block mb-1">아이디</span>
+                                    <span className="text-xl font-bold text-gray-900 tracking-tight">{resultData.id}</span>
+                                </div>
+                            ) : (
+                                <div>
+                                    <span className="text-xs text-gray-400 block mb-1">임시 비밀번호</span>
+                                    <span className="text-xl font-bold text-[#488ad8] tracking-tight">{resultData.tempPw}</span>
+                                    <p className="text-[11px] text-red-400 mt-2">※ 로그인 후 비밀번호를 변경해 주세요.</p>
+                                </div>
+                            )}
                         </div>
 
-                        {/* 2. 아이디 입력 (PW 탭이면서 이름이 2자 이상일 때만 노출) */}
-                        {activeTab === 'PW' && formValues.name.length >= 2 && (
-                            <div className="animate-in fade-in slide-in-from-top-2 duration-500">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">아이디</label>
+                        <Link href="/login" 
+                            className="block w-full py-4 rounded-lg text-white font-bold shadow-md hover:opacity-90 transition-all text-center"
+                            style={{ backgroundColor: brandColor }}>
+                            로그인하러 가기
+                        </Link>
+                    </div>
+
+                
+                ) : (
+                    <>
+                    <div className="p-8 text-center">
+                        <h2 className="text-2xl font-bold text-gray-800">계정 찾기</h2>
+                        
+                        <p className="text-gray-500 mt-2 text-sm"><span className="text-[15px] text-[#488ad8]">가입하신 정보</span>를 입력하여 본인 인증을 진행해 주세요.</p>
+                    </div>
+
+                    {/* Tab Menu */}
+                    <div className="flex border-b">
+                        {(['ID', 'PW'] as const).map((tab) => (
+                            <button
+                                key={tab}
+                                onClick={() => {
+                                    setActiveTab(tab);
+                                    setFormValues({ name: '', userId: '', email: '' }); // 탭 변경 시 리셋
+                                    //setCoolDown(0); // 탭 전환 시 쿨타임 초기화 여부
+                                    setIsAuthSent(false); // [추가] 탭 변경 시 발송 상태 초기화
+                                    setAuthCode(''); // [추가] 탭 변경 시 인증번호 초기화
+
+                                }}
+                                className={`flex-1 py-4 text-sm font-semibold transition-colors ${
+                                    activeTab === tab ? 'border-b-2' : 'text-gray-400'
+                                }`}
+                                style={activeTab === tab ? { borderColor: brandColor, color: brandColor } : {}}
+                            >
+                                {tab === 'ID' ? '아이디 찾기' : '비밀번호 찾기'}
+                            </button>
+                        ))}
+                    </div>
+
+                    <div className="p-8">
+                        <form onSubmit={handleSubmit} className="space-y-5">
+                            
+                            {/* 1. 이름 입력 (항상 노출) */}
+                            <div className="transition-all duration-300 ease-in-out">
+                                <label className="block text-sm font-medium text-gray-700 mb-1">이름</label>
                                 <input
-                                    name="userId"
-                                    value={formValues.userId}
+                                    name="name"
+                                    value={formValues.name}
                                     onChange={handleChange}
                                     required
                                     className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2"
                                     style={{ '--tw-ring-color': brandColor } as any}
-                                    placeholder="아이디를 입력하세요"
+                                    placeholder="가입한 이름을 입력하세요"
                                 />
-                                <span className="block text-[11px] mt-1.5 ml-1 text-[#488ad8]">※ 영문 소문자/숫자 조합 6~20자</span>
+                                <span className="block text-[11px] mt-1.5 ml-1 text-[#488ad8]">※ 한글만 입력가능</span>
                             </div>
-                        )}
 
-                        {/* 3. 이메일 입력 (이전 단계가 완료되었을 때 노출) 
-                            - ID 탭: 이름 2자 이상
-                            - PW 탭: 이름 2자 이상 AND 아이디 2자 이상
-                        */}
-                        {((activeTab === 'ID' && formValues.name.length >= 2) || 
-                            (activeTab === 'PW' && formValues.name.length >= 2 && formValues.userId.length >= 2)) && (
-                            <div className="animate-in fade-in slide-in-from-top-2 duration-500">
-                                <label className="block text-sm font-medium text-gray-700 mb-1">이메일</label>
-                                <input
-                                    name="email"
-                                    type="email"
-                                    value={formValues.email}
-                                    onChange={handleChange}
-                                    required
-                                    className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2"
-                                    style={{ '--tw-ring-color': brandColor } as any}
-                                    placeholder="example@email.com"
-                                />
-                            </div>
-                        )}
-
-                        {/* 4. 버튼 노출 (마지막 단계인 이메일이 2자 이상일 때만 노출) */}
-                        {formValues.email.length >= 2 && (
-                            <div className="animate-in fade-in zoom-in-95 duration-300">
-                                <button
-                                    type="submit"
-                                    disabled={isButtonDisabled}
-                                    className="w-full py-4 rounded-lg text-white font-bold shadow-md hover:opacity-90 transition-all disabled:bg-gray-300 disabled:cursor-not-allowed"
-                                    style={{ backgroundColor: !isButtonDisabled ? brandColor : undefined }}
-                                >
-                                    {isLoading ? (
-                                    '요청 처리 중...'
-                                    ) : coolDown > 0 ? (
-                                    `재발송 가능까지 ${coolDown}초`
-                                    ) : (
-                                    '이메일로 인증번호 발송'
-                                    )}
-                                </button>
-                            </div>
-                        )}
-
-                        {/* 인증번호 입력란 - isAuthSent가 true일 때만 노출 */}
-                        {isAuthSent && (
-                            <div className="animate-in fade-in slide-in-from-top-4 duration-500 space-y-4 pt-4 border-t">
-                                <div className="bg-blue-50 p-4 rounded-lg">
-                                    <p className="text-xs text-blue-600 font-semibold mb-2">
-                                        입력하신 이메일로 인증번호가 전송되었습니다.
-                                    </p>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">인증번호</label>
+                            {/* 2. 아이디 입력 (PW 탭이면서 이름이 2자 이상일 때만 노출) */}
+                            {activeTab === 'PW' && formValues.name.length >= 2 && (
+                                <div className="animate-in fade-in slide-in-from-top-2 duration-500">
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">아이디</label>
                                     <input
-                                        name="authCode"
-                                        value={authCode}
-                                        onChange={handleAuthChange}
-                                        maxLength={6}
-                                        className="w-full px-4 py-3 border-2 border-blue-200 rounded-lg focus:outline-none focus:border-blue-500 text-center text-xl font-bold tracking-widest"
-                                        placeholder="인증번호 6자리"
+                                        name="userId"
+                                        value={formValues.userId}
+                                        onChange={handleChange}
+                                        required
+                                        className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2"
+                                        style={{ '--tw-ring-color': brandColor } as any}
+                                        placeholder="아이디를 입력하세요"
+                                    />
+                                    <span className="block text-[11px] mt-1.5 ml-1 text-[#488ad8]">※ 영문 소문자/숫자 조합 6~20자</span>
+                                </div>
+                            )}
+
+                            {/* 3. 이메일 입력 (이전 단계가 완료되었을 때 노출) 
+                                - ID 탭: 이름 2자 이상
+                                - PW 탭: 이름 2자 이상 AND 아이디 2자 이상
+                            */}
+                            {((activeTab === 'ID' && formValues.name.length >= 2) || 
+                                (activeTab === 'PW' && formValues.name.length >= 2 && formValues.userId.length >= 2)) && (
+                                <div className="animate-in fade-in slide-in-from-top-2 duration-500">
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">이메일</label>
+                                    <input
+                                        name="email"
+                                        type="email"
+                                        value={formValues.email}
+                                        onChange={handleChange}
+                                        required
+                                        className="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2"
+                                        style={{ '--tw-ring-color': brandColor } as any}
+                                        placeholder="example@email.com"
                                     />
                                 </div>
-                                <button
-                                    type="button" // 서브밋 방지
-                                    className="w-full py-4 rounded-lg text-white font-bold shadow-md bg-gray-800 hover:bg-black transition-all"
-                                >
-                                    인증번호 확인
-                                </button>
-                            </div>
-                        )}
+                            )}
+
+                            {/* 4. 버튼 노출 (마지막 단계인 이메일이 2자 이상일 때만 노출) */}
+                            {formValues.email.length >= 2 && !isAuthSent &&  (
+                                <div className="animate-in fade-in zoom-in-95 duration-300">
+                                    <button
+                                        type="submit"
+                                        disabled={isButtonDisabled}
+                                        className="w-full py-4 rounded-lg text-white font-bold shadow-md hover:opacity-90 transition-all disabled:bg-gray-300 disabled:cursor-not-allowed"
+                                        style={{ backgroundColor: !isButtonDisabled ? brandColor : undefined }}
+                                    >
+                                        {isLoading ? (
+                                        '요청 처리 중...'
+                                        ) : coolDown > 0 ? (
+                                        `재발송 가능까지 ${coolDown}초`
+                                        ) : (
+                                        '이메일로 인증번호 발송'
+                                        )}
+                                    </button>
+                                </div>
+                            )}
+
+                            {/* 인증번호 입력란 - isAuthSent가 true일 때만 노출 */}
+                            {isAuthSent && (
+                                <div className="animate-in fade-in slide-in-from-top-4 duration-500 space-y-4 pt-4 border-t">
+                                    <div className="bg-blue-50 p-4 rounded-lg">
+                                        <p className="text-xs text-blue-600 font-semibold mb-2">
+                                            입력하신 이메일로 인증번호가 전송되었습니다.
+                                        </p>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">인증번호</label>
+                                        <input
+                                            name="authCode"
+                                            value={authCode}
+                                            onChange={handleAuthChange}
+                                            maxLength={6}
+                                            className="w-full px-4 py-3 border-2 border-blue-200 rounded-lg focus:outline-none focus:border-blue-500 text-center text-xl font-bold tracking-widest"
+                                            placeholder="인증번호 6자리"
+                                        />
+                                    </div>
+                                    <button
+                                        //type="button" // 서브밋 방지
+                                        type="submit" // [수정] 핸들러에서 isAuthSent 조건으로 분기되므로 submit으로 둡니다.
+                                        disabled={isLoading}
+                                        className="w-full py-4 rounded-lg text-white font-bold shadow-md bg-gray-800 hover:bg-black transition-all"
+                                    >
+                                        {isLoading ? '인증 확인 중...' : '인증번호 확인'}
+                                    </button>
+                                </div>
+                            )}
 
 
-                    </form>
+                        </form>
 
-                    
+                        
 
-                    <div className="mt-8 flex justify-between text-sm">
-                        <Link href="/login" className="text-gray-400 hover:text-gray-600 transition-colors">로그인으로 돌아가기</Link>
-                        <Link href="/signup" style={{ color: brandColor }} className="font-bold">회원가입</Link>
+                        <div className="mt-8 flex justify-between text-sm">
+                            <Link href="/login" className="text-gray-400 hover:text-gray-600 transition-colors">로그인으로 돌아가기</Link>
+                            <Link href="/signup" style={{ color: brandColor }} className="font-bold">회원가입</Link>
+                        </div>
                     </div>
-                </div>
+                    </>
+                )}
             </div>
         </div>
     );

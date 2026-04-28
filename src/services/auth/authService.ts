@@ -131,9 +131,10 @@ export const authService = {
     /**
      * [아이디/비밀번호 찾기] 이메일 내 인증코드
      */
-    chkAuthCode: async (data: { activeTab: string, name: string; email: string; authCode: string }) => {
+    chkAuthCode: async (data: { activeTab: string, name: string; userId: string, email: string; authCode: string }) => {
         const reqData = {
             userNm: data.name,
+            userId: data.userId,
             email: data.email,
             authCode: data.authCode,
             type: data.activeTab
@@ -141,6 +142,10 @@ export const authService = {
 
         const response = await api.post<any, ApiResponse<dataMap>>('/auth/find-auth-chk', reqData);
         //const response = await api.post<any, ApiResponse<dataMap>>('/auth/findId', reqData);
+
+        if(response.cd !== '0000') {
+            //throw new Error(response.msg || "잠시 후 다시 시도해주세요.");
+        }
         
         //const response = await api.post<any, ApiResponse<dataMap>>('/auth/findId', data);
         return response;
@@ -157,7 +162,7 @@ export const authService = {
             type: "id"
         };
 
-        const response = await api.post<any, ApiResponse<dataMap>>('/auth/find-auth-chk', reqData);
+        const response = await api.post<any, ApiResponse<dataMap>>('/auth/find-id', reqData);
         //const response = await api.post<any, ApiResponse<dataMap>>('/auth/findId', reqData);
         
         //const response = await api.post<any, ApiResponse<dataMap>>('/auth/findId', data);
@@ -176,7 +181,7 @@ export const authService = {
             type: "pw"
         };
 
-        const response = await api.post<any, ApiResponse<dataMap>>('/auth/findPw', reqData);
+        const response = await api.post<any, ApiResponse<dataMap>>('/auth/find-pw', reqData);
         //const response = await api.post<any, ApiResponse<dataMap>>('/auth/findPw', data);
         return response;
     },
