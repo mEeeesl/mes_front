@@ -5,6 +5,7 @@ import Link from 'next/link';
 
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/login/useAuth';
+import { useAuthStore } from '@/stores/authStore';
 import { HomeIcon, CaretLeftIcon, HamburgerMenuIcon, AvatarIcon, Cross1Icon, ChevronDownIcon } from '@radix-ui/react-icons';
 import { Logo } from '@/components/common/Logo';
 import Image from 'next/image';
@@ -22,7 +23,15 @@ export default function Header() {
      * user: 프로필 정보 (Map 구조)
      * logout: 로그아웃 실행 함수 (mutate)
      */
-    const { user, logout: logoutMutate } = useAuth();
+    
+    // 2026.04.30 UI적인 user정보(이름 등 보여주는 정보)는 Zustand 참조하도록처리
+    //const { user, logout: logoutMutate } = useAuth(); 
+    const { logout: logoutMutate } = useAuth();
+    //const { user } = useAuthStore();
+    const user = useAuthStore((state) => state.user);
+    const isInitialized = useAuthStore((state) => state.isInitialized);
+    console.log("Header : 현재 user : " + user);
+    console.log("Header : 현재 isInitialized : " + isInitialized);
 
     // 사이드바 열림/닫힘 상태
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -204,7 +213,7 @@ export default function Header() {
 
                 <div className="flex flex-col h-full">
                     <div className="flex justify-between items-center p-6 border-b border-gray-100">
-                        {user ? (
+                        {isInitialized && user ? (
                             <button onClick={() => { if(confirm('로그아웃 하시겠습니까?')) { logoutMutate(); toggleMenu(); } }} className="flex flex-col items-start">
                                 <span className="text-lg font-bold text-[#488ad8]">{user.userNm}님</span>
                                 <span className="text-[11px] text-gray-400">로그아웃</span>

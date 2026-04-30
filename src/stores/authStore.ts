@@ -21,6 +21,8 @@ interface AuthState {
     setInitialized: (val: boolean) => void;
 
     logout: () => void; 
+
+    clearAuth: () => void;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -30,6 +32,8 @@ export const useAuthStore = create<AuthState>((set) => ({
     setInitialized: (val) => set({ isInitialized: val }),
 
     logout: () => set({ isInitialized: false }), 
+
+    clearAuth: () => set({user: null, isInitialized: false}),
 }));
 
 

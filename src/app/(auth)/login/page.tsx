@@ -6,6 +6,7 @@ import Script from 'next/script';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/hooks/login/useAuth'; // 리팩토링된 훅
 import CustomInput from '@/components/common/CustomInput';
+import { useAuthStore } from '@/stores/authStore';
 import { useModalStore } from '@/stores/useModalStore';
 import { useFindStore } from '@/stores/auth/find/useFindStore';
 
@@ -17,7 +18,8 @@ import { useFindStore } from '@/stores/auth/find/useFindStore';
 function LoginForm() {
 
     const router = useRouter();
-    const { login, isLoggingIn, user } = useAuth(); // 로직 집약적 추출
+    const { login, isLoggingIn, profileData } = useAuth(); // 로직 집약적 추출
+    const { user } = useAuthStore();
     const [formData, setFormData] = useState({ userId: '', password: '' });
     const showAlert = useModalStore((state) => state.showAlert);
     const searchParams = useSearchParams();
@@ -27,6 +29,7 @@ function LoginForm() {
     // 로그인 상태라면 접근 차단
     //이미 로그인된 유저가 로그인 후 뒤로가기로 접근 시 홈으로 튕겨내기
     useEffect(() => {
+        //if (profileData) {
         if (user) {
             // 이미 로그인된 유저가 들어왔을 때도 redirect 파라미터가 있다면 그곳으로 보내주는 게 친절한 설계입니다.
             const targetPath = redirect ? decodeURIComponent(redirect) : '/';
@@ -34,7 +37,7 @@ function LoginForm() {
             router.refresh(); 
             router.replace(targetPath);
         }
-    }, [user, router, redirect]); // redirect를 의존성 배열에 추가
+    }, [profileData, router, redirect]); // redirect를 의존성 배열에 추가
     /*
     useEffect(() => {
         if (user) router.replace('/');

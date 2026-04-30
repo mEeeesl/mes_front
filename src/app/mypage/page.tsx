@@ -19,15 +19,21 @@ import {
   LockClosedIcon, // 비밀번호용 아이콘
   MobileIcon,     // 전화번호용 아이콘
   IdCardIcon,      // 아이디용 아이콘
-  ExitIcon
+  ExitIcon      // 출구(로그아웃) 아이콘
 } from '@radix-ui/react-icons';
 
 export default function MyPage() {
-    // [1] 기본 인증 상태 (전체 앱 공유 훅)
-    const { isProfileLoading, user } = useAuth();
+
+
+    // [1] Zustand 스토어에서 유저 정보와 초기화 상태를 가져옴 (UI 판단의 기준)
+    const user = useAuthStore((state) => state.user);
     const isInitialized = useAuthStore((state) => state.isInitialized);
 
-    // [2] 마이페이지 상세 정보 (전용 훅)
+
+    // [2] 기본 인증 훅 상태 (전체 앱 공유 훅) (내부적으로 profile을 가져오고 스토어를 업데이트)
+    const { isProfileLoading, profileData } = useAuth();
+
+    // [2] 마이페이지 상세 정보 (마이페이지 전용 훅)
     const { detail, isDetailLoading } = useMyProfile();
     
     const router = useRouter();
@@ -35,6 +41,7 @@ export default function MyPage() {
     const showAlert = useModalStore((state) => state.showAlert);
 
     // [방어 코드] 클라이언트 측 강제 리다이렉트
+    // 로그인 여부 체크는 'user' 스토어를 기준으로 함
     useEffect(() => {
         if (isInitialized && !isProfileLoading && !user && !isRedirecting.current) {
             isRedirecting.current = true;
@@ -43,6 +50,12 @@ export default function MyPage() {
             });
         }
     }, [isInitialized, isProfileLoading, user, router, showAlert]);
+    console.log("---------------------");
+    console.log(!isInitialized);
+    console.log(isProfileLoading);
+    console.log(isDetailLoading);
+    console.log("---------------------");
+    
 
     if (!isInitialized || isProfileLoading || isDetailLoading) {
         return (

@@ -18,7 +18,7 @@ export default function FindAccountPage() {
 
     // 훅을 부를 때 성공(onSuccess) 시 실행할 로직
     //const { findId, isFindingId, findPw, isFindingPw } = useFindAccount();
-    const { verifyAuthCode, findId, isFindingId, findPw, isFindingPw } = useFindAccount(() => {
+    const { verifyAuthCode, findId, findPw, isVerifing, isFindingId, isFindingPw } = useFindAccount(() => {
         setIsAuthSent(true); // 훅에서 성공하면 페이지의 이 상태를 true로!
     });
     
@@ -124,6 +124,10 @@ export default function FindAccountPage() {
                 onError: (error) => {
                     // 훅이나 서비스에서 throw한 Err
                     showAlert(error.message);
+                },
+                onSettled: () => {
+
+
                 }
             })
             /*
@@ -144,7 +148,7 @@ export default function FindAccountPage() {
 
     
 
-    const isLoading = isFindingId || isFindingPw;
+    const isLoading = isFindingId || isFindingPw || isVerifing;
     // 버튼 비활성화 조건: 로딩 중이거나 쿨타임이 남았을 때
     //const isButtonDisabled = isLoading || coolDown > 0;
     const isButtonDisabled = isLoading || (coolDown > 0 && !isAuthSent);

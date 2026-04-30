@@ -1,0 +1,177 @@
+'use client';
+
+'use client';
+
+import React, { useState } from 'react';
+import { 
+    ChevronRightIcon, 
+    InfoCircledIcon, 
+    CalendarIcon, 
+    DotFilledIcon, // 에러 없는 가벼운 점 아이콘
+    Pencil1Icon,
+    ChevronDownIcon 
+} from '@radix-ui/react-icons';
+
+export default function AttendanceApply() {
+    const [selectedStore, setSelectedStore] = useState<string | null>(null);
+    const [step, setStep] = useState(1); // 1: 입력, 2: 최종확인
+    const [applyData, setApplyData] = useState({
+        date: new Date().toISOString().split('T')[0], // 오늘 날짜 기본값
+        region: '서울 강남구',
+        memo: ''
+    });
+
+    const stores = ['Zara', 'Nike', 'Massimo Dutti', 'Apple Store', 'Samsung Experience'];
+
+    const closeModal = () => {
+        setSelectedStore(null);
+        setStep(1);
+        setApplyData({ ...applyData, memo: '' }); // 메모 초기화 (선택사항)
+    };
+
+    return (
+        <div className="min-h-screen bg-gray-50 pb-20">
+            {/* 1. 상단 헤더 섹션 */}
+            <div className="bg-white border-b border-gray-100 px-6 py-12 md:px-10">
+                <div className="max-w-7xl mx-auto">
+                    <h2 className="text-3xl font-black text-gray-800 tracking-tighter mb-2">출근 신청</h2>
+                    <p className="text-gray-400 font-medium">근무하실 사이트를 선택해 주세요.</p>
+                </div>
+            </div>
+
+            {/* 2. 사이트 리스트 */}
+            <div className="max-w-7xl mx-auto px-6 md:px-10 mt-10">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {stores.map((store) => (
+                        <div 
+                            key={store}
+                            onClick={() => setSelectedStore(store)}
+                            className="group bg-white p-6 rounded-[2rem] border border-gray-100 shadow-sm hover:shadow-xl hover:border-[#488ad8]/30 hover:-translate-y-1 transition-all cursor-pointer flex justify-between items-center"
+                        >
+                            <div className="flex items-center gap-4">
+                                <div className="w-12 h-12 bg-gray-50 rounded-2xl flex items-center justify-center group-hover:bg-[#488ad8]/10 transition-colors">
+                                    <span className="text-[#488ad8] font-black text-lg">{store[0]}</span>
+                                </div>
+                                <span className="text-lg font-bold text-gray-700 group-hover:text-[#488ad8]">{store}</span>
+                            </div>
+                            <ChevronRightIcon className="w-6 h-6 text-gray-300 group-hover:text-[#488ad8] group-hover:translate-x-1 transition-all" />
+                        </div>
+                    ))}
+                </div>
+            </div>
+
+            {/* 3. 통합 2단계 모달 */}
+            {selectedStore && (
+                <div className="fixed inset-0 z-[200] flex items-center justify-center p-6">
+                    {/* 배경 흐림 처리 */}
+                    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={closeModal} />
+                    
+                    <div className="relative bg-white w-full max-w-[420px] rounded-[3rem] shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300">
+                        {/* 상단 디자인 포인트 바 */}
+                        <div className="h-2 w-full bg-[#488ad8]" />
+
+                        <div className="p-8 md:p-10">
+                            {/* --- STEP 1: 정보 입력 단계 --- */}
+                            {step === 1 && (
+                                <div className="space-y-6">
+                                    <div className="text-center mb-8">
+                                        <span className="text-[#488ad8] font-black text-sm uppercase tracking-widest">Step 01</span>
+                                        <h3 className="text-2xl font-black text-gray-800 tracking-tighter mt-1">{selectedStore} 출근 신청</h3>
+                                    </div>
+
+                                    <div className="space-y-5">
+                                        {/* 날짜 입력 */}
+                                        <div className="space-y-2">
+                                            <label className="text-xs font-bold text-gray-400 ml-1 flex items-center gap-1.5">
+                                                <CalendarIcon className="text-[#488ad8]" /> 근무 날짜
+                                            </label>
+                                            <input 
+                                                type="date" 
+                                                value={applyData.date}
+                                                onChange={(e) => setApplyData({...applyData, date: e.target.value})}
+                                                className="w-full px-5 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:border-[#488ad8] transition-all font-semibold text-gray-700"
+                                            />
+                                        </div>
+
+                                        {/* 지역 선택 (셀렉트박스) */}
+                                        <div className="space-y-2">
+                                            <label className="text-xs font-bold text-gray-400 ml-1 flex items-center gap-1.5">
+                                                <DotFilledIcon className="text-[#488ad8]" /> 탑승 지역
+                                            </label>
+                                            <div className="relative">
+                                                <select 
+                                                    value={applyData.region}
+                                                    onChange={(e) => setApplyData({...applyData, region: e.target.value})}
+                                                    className="w-full px-5 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:border-[#488ad8] appearance-none font-semibold text-gray-700 cursor-pointer"
+                                                >
+                                                    <option>서울 강남구</option>
+                                                    <option>서울 서초구</option>
+                                                    <option>경기 용인시</option>
+                                                    <option>경기 수원시</option>
+                                                </select>
+                                                <ChevronDownIcon className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                                            </div>
+                                        </div>
+
+                                        {/* 메모 입력 */}
+                                        <div className="space-y-2">
+                                            <label className="text-xs font-bold text-gray-400 ml-1 flex items-center gap-1.5">
+                                                <Pencil1Icon className="text-[#488ad8]" /> 비고 및 요청사항
+                                            </label>
+                                            <input 
+                                                type="text" 
+                                                placeholder="특이사항을 입력하세요"
+                                                value={applyData.memo}
+                                                onChange={(e) => setApplyData({...applyData, memo: e.target.value})}
+                                                className="w-full px-5 py-4 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:border-[#488ad8] transition-all font-semibold text-gray-700"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <button 
+                                        onClick={() => setStep(2)}
+                                        className="w-full py-5 bg-[#488ad8] text-white font-black rounded-2xl shadow-lg shadow-[#488ad8]/20 hover:bg-[#3a72b5] transition-all active:scale-95 mt-4"
+                                    >
+                                        신청하기
+                                    </button>
+                                </div>
+                            )}
+
+                            {/* --- STEP 2: 최종 확정 단계 --- */}
+                            {step === 2 && (
+                                <div className="text-center py-4">
+                                    <div className="w-20 h-20 bg-[#488ad8]/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                                        <InfoCircledIcon className="w-10 h-10 text-[#488ad8]" />
+                                    </div>
+                                    <h3 className="text-2xl font-black text-gray-800 mb-2 tracking-tighter">{selectedStore}</h3>
+                                    
+                                    <div className="bg-gray-50 rounded-2xl p-4 mb-8 text-sm font-bold text-gray-500 space-y-1">
+                                        <p>{applyData.date} / {applyData.region}</p>
+                                        {applyData.memo && <p className="text-[#488ad8] text-xs">"{applyData.memo}"</p>}
+                                    </div>
+
+                                    <p className="text-gray-500 font-medium mb-8">위 정보로 출근을<br/>최종 확정하시겠습니까?</p>
+                                    
+                                    <div className="flex gap-3">
+                                        <button 
+                                            onClick={() => setStep(1)}
+                                            className="flex-1 py-4 bg-gray-100 text-gray-500 font-bold rounded-2xl hover:bg-gray-200 transition-all"
+                                        >
+                                            수정하기
+                                        </button>
+                                        <button 
+                                            onClick={() => { alert(`[${selectedStore}] 출근 완료!`); closeModal(); }}
+                                            className="flex-1 py-4 bg-[#488ad8] text-white font-bold rounded-2xl shadow-lg shadow-[#488ad8]/30 hover:bg-[#3a72b5] transition-all"
+                                        >
+                                            확인
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+}

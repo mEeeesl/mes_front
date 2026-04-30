@@ -24,7 +24,7 @@ export const useAuth = (options = { enabled: true }) => {
     const queryClient = useQueryClient();
     const router = useRouter();
     //const searchParams = useSearchParams();
-    const { setInitialized, setUser } = useAuthStore();
+    const { setInitialized, setUser, clearAuth } = useAuthStore();
     //const setInitialized = useAuthStore((state) => state.setInitialized);
     //const setUser = useAuthStore((state) => state.setUser);
     const showAlert = useModalStore((state) => state.showAlert);
@@ -93,6 +93,7 @@ export const useAuth = (options = { enabled: true }) => {
             // 에러 여부와 상관없이 클라이언트 정보는 초기화하는 것이 안전
             queryClient.setQueryData(['profile'], null);
             setUser(null);
+            //clearAuth();
             router.replace('/'); // 리플레이스해서 기존창 찢어버리고 메인 시작(이전 페이지로 뒤로가기 안됨)
         }
     });
@@ -118,6 +119,8 @@ export const useAuth = (options = { enabled: true }) => {
                 // 세션이 만료되었거나 토큰이 DB에서 지워진 경우 (401, 403 등)
                 //console.error("인증 실패 : " + err);
                 setUser(null);
+                //clearAuth();
+                queryClient.setQueryData(['profile'], null);
                 return null; // 미인증 시 자연스럽게 null 반환
             } finally {
                 // 렌더링 차단을 막기 위해 초기화 완료 처리
@@ -141,11 +144,13 @@ export const useAuth = (options = { enabled: true }) => {
         //refetchOnWindowFocus: false,
     });
 
+    
+
     // 3. 카카오 간편 로그인 뮤테이션
     //const kakaoSimpleLoginMutation = useMutation({
     const kakaoSimpleLoginMutation = useMutation<ApiResponse<any>, Error, string>({  
         mutationFn: (code: string) => authService.socialLogin("kakao", code),
-        onSuccess: (res) => {
+        onSuccess: async (res) => {
             sessionStorage.clear();
             
             console.log("### [ socialLogin ] ###");
@@ -153,7 +158,18 @@ export const useAuth = (options = { enabled: true }) => {
             //if(res){
             if(res && res.cd === '0000') {
                 //showAlert(res.msg || "")
-                queryClient.setQueryData(['profile'], res.data.user);
+                const userData = res.data.user;
+                
+                // 1. TanStack Query . Invalidate ( 무효화 )
+                await queryClient.invalidateQueries({ queryKey: ['profile'] });
+                
+                // 2. 캐시에 직접 박아넣기
+                queryClient.setQueryData(['profile'], userData);
+
+                // 3. Zustand 저장
+                setUser(res.data.user);
+           
+                // 4. 메인 페이지로 이동 (Header가 다시 그려지면서 캐시된 정보를 읽음)
                 router.push('/');
             } else {
                 queryClient.setQueryData(['profile'], null);
@@ -167,19 +183,21 @@ export const useAuth = (options = { enabled: true }) => {
             showAlert(error.response?.data?.msg || "서버 통신 중 에러가 발생했습니다.", () => router.push('/login'));
         },
         onSettled: () => {
-            
             sessionStorage.removeItem('kakao_auth_code');
+            setInitialized(true);
         }
 
         // 원래 여기서 onSuccess/onError를 하지만,
         // 페이지 특화 로직은 호출부에서 해도됨
     });
 
+  
     return {
         login: loginMutation.mutate,
         isLoggingIn: loginMutation.isPending,
         logout: logoutMutation.mutate,
-        user: profileQuery.data,
+        //user: profileQuery.data,
+        profileData: profileQuery.data,
         isProfileLoading: profileQuery.isLoading,
         //isInitialized, // Zustand 상태를 여기서 함께 리턴해주면 더 편리
 

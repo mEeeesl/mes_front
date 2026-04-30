@@ -35,7 +35,7 @@ export async function middleware(request: NextRequest) {
             const backendResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/cloud/check`, {
                 method: 'GET',
                 headers: { 'Authorization': `Bearer ${token}` },
-                signal: AbortSignal.timeout(2000), // 2초 넘으면 서버 죽은 걸로 간주
+                signal: AbortSignal.timeout(20000), // 20초 넘으면 서버 죽은 걸로 간주
             });
 
             // 서버 응답이 500번대 이상이거나 문제가 있다면 에러로 던짐

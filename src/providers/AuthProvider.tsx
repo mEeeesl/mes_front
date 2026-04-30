@@ -1,14 +1,16 @@
 'use client';
 
+import { useEffect } from 'react';
 import { useAuthStore } from '@/stores/authStore';
 import { useAuth } from '@/hooks/login/useAuth'; // 통합 훅
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 
 export default function AuthProvider({ children }: { children: React.ReactNode }) {
     // 1. Zustand에서 초기화 완료 여부 플래그만 가져옴
     //const isInitialized = useAuthStore((state) => state.isInitialized);
-    const { isInitialized } = useAuthStore();
+    const { isInitialized, setInitialized, user, setUser, clearAuth} = useAuthStore(); 
     const pathname = usePathname();
+    const router = useRouter();
 
     // 1. Public Paths 공개 경로 설정 (이곳에선 인증 체크 로딩을 보이지 않음)
     const publicPaths = ['/login', '/signup', '/signup/callback', '/auth/signup/chk'];
@@ -18,7 +20,7 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
     const isMainPage = pathname === '/';
 
 
-	
+
 /**
      * 2. 통합 훅 호출 - 프로필 조회
      * useAuth 내부의 profileQuery가 실행되면서 
@@ -30,13 +32,67 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
      * 새로고침 시 전역 상태 복구를 위해 보통 전체 적용하거나 
      * 내부 로직에서 enabled를 세밀하게 관리합니다.
      */
-    const { isProfileLoading } = useAuth();    
+    const { profileData, isProfileLoading } = useAuth();    
     //const { isProfileLoading } = useAuth({ enabled: !isPublicPath });
+
+    // 초기화 완료 로직
+    // profileQuery의 로딩이 끝나면 (데이터를 가져왔든, 에러가 났든) 초기화 완료를 선언합니다.
+    // 훅에서 가져온 데이터를 주스탠드 스토어에 동기화
+    
+    useEffect(() => {
+        if (!isProfileLoading) {
+
+            // 훅(Tanstack Query Cache)에서 가져온 데이터를 스토어(Zustand)에 동기화
+            setUser(profileData ?? null);
+
+            // 초기화 완료
+            setInitialized(true);
+
+        }
+    }, [profileData, isProfileLoading, setInitialized, setUser, ]);
+
+
+
     
 
-    // 3. 인증 정보를 서버에서 가져오는 중일 때의 처리
+
+/*
+    // 3. 쿠키 기반 세션 만료 감지 (HttpOnly인 경우 백엔드 응답을 믿어야 함)
+    // 쿠키 기반 인증 상태 동기화 (단일 진실 공급원)
+    // HttpOnly 쿠키라면 document.cookie는 무시하고, profileQuery가 에러(401)를 냈을 때 처리하는게 정석입니다.
+    useEffect(() => {
+        // 브라우저 쿠키에서 토큰 유무 확인
+        const hasToken = document.cookie.split('; ').find(row => row.startsWith('accessToken='));
+        
+        // 토큰은 없는데 Zustand에 유저 정보가 있다면? (세션 만료 상황)
+        if (!hasToken && user) {
+            console.warn("세션 만료 감지: 클라이언트 상태를 초기화합니다.");
+            clearAuth(); // TanstackQuery 캐시 초기화 + Zustand 상태 초기화
+            if (!isPublicPath) {
+                //router.replace('/login');
+            }
+        }
+    }, [pathname, user, clearAuth ]);
+*/
+
+
+    // 공통 보호 경로 처리 (마이페이지 등)
+    // 페이지 진입 시 로딩이 끝났는데 유저가 없다면 리다이렉트
+    useEffect(() => {
+        if (isInitialized && !isProfileLoading && !user && !isPublicPath) {
+            //router.replace('/login');
+        }
+    }, [isInitialized, isProfileLoading, user, isPublicPath, router])
+    
+
+
+
+    // 4. 로딩 UI 결정
+    // 4. 인증 정보를 서버에서 가져오는 중일 때의 처리
     // 비공개 경로이면서 아직 인증 확인(isInitialized)이 안 끝났다면 본문을 보여주지 않습니다.
+    // 보호된 경로에 들어왔는데 아직 유저 정보 확인이 안 끝났을 때만 로딩을 보여줍니다.
     if (!isPublicPath && !isInitialized && isProfileLoading) {
+    //if (!isPublicPath && !isInitialized) {
         return (
         <div className="flex h-screen items-center justify-center bg-gray-50">
             <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500"></div>
