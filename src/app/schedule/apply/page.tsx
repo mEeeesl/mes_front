@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { ChevronDownIcon, ChevronRightIcon, CalendarIcon, LockClosedIcon } from '@radix-ui/react-icons';
 import { getAvailableDates } from './_lib/utils';
 import RegistrationForm from './_components/RegistrationForm';
@@ -15,7 +15,8 @@ const SHUTTLE_STOPS: Record<string, string[]> = {
     "수원": ["수원역 10번출구", "동수원사거리 CU 앞", "아주대학교입구 버스정류장(아주대방면)"],
     "원주": ["단계사거리", "합동청사 왈왈이카페 앞", "시청사거리 다이소 옆 주유소"],
     "서울": ["2호선 잠실역 8번출구 앞 잠실시그마타워 앞", "천호역 8번출구 효성해링턴타워 횡단보도 앞"],
-    "안산": ["중앙역 2번출구 맞은편", "상록수역 3번출구 맞은편"]
+    "안산": ["중앙역 2번출구 맞은편", "상록수역 3번출구 맞은편"],
+    "자차": ["자차로 출근"]
 };
 
 export default function AttendanceApply() {
@@ -26,6 +27,9 @@ export default function AttendanceApply() {
     const [isAgreed, setIsAgreed] = useState(false);
     const showAlert = useModalStore((state) => state.showAlert);
     
+    // 최종 신청 버튼 위치를 가리킬 Ref
+    const submitButtonRef = useRef<HTMLButtonElement>(null);
+
     const [applyData, setApplyData] = useState<{
         dates: string[];
         shuttleRegion: string;
@@ -40,6 +44,18 @@ export default function AttendanceApply() {
     const availableDates = getAvailableDates();
 
     // --- 핸들러 ---
+
+    // 동의/미동의 클릭 시 호출될 스크롤 핸들러
+    const handlePrivacyChange = (agreed: boolean) => {
+        setIsAgreed(agreed);
+        // 상태 변경 후 렌더링 타이밍을 고려해 살짝 지연 후 스크롤
+        setTimeout(() => {
+            submitButtonRef.current?.scrollIntoView({ 
+                behavior: 'smooth', 
+                block: 'center' 
+            });
+        }, 100);
+    };
 
     // 날짜 복수 선택/해제 로직
     const handleDateClick = (date: string) => {
@@ -159,7 +175,7 @@ export default function AttendanceApply() {
                                                 onClick={() => handleDateClick(date)}
                                                 className={`py-5 rounded-[1.5rem] font-bold transition-all border-2 
                                                     ${applyData.dates.includes(date) 
-                                                        ? 'border-blue-600 bg-blue-600 text-white shadow-lg scale-[0.98]' 
+                                                        ? 'border-blue-600 bg-[#488ad8] text-white shadow-lg scale-[0.98]' 
                                                         : 'border-slate-50 bg-slate-50 text-slate-400 hover:bg-slate-100'}`}
                                             >
                                                 {date}
@@ -220,13 +236,14 @@ export default function AttendanceApply() {
                                     )}
                                 </section>
 
-                                {/* 3. 개인정보 동의 (컴포넌트 내 체크박스 상태 연동) */}
-                                <PrivacyConsent onAgreeChange={setIsAgreed} />
+                                {/* 3. 개인정보 동의 (핸들러 연결) */}
+                                <PrivacyConsent onAgreeChange={handlePrivacyChange} />
 
-                                {/* 4. 최종 신청 버튼 */}
+                                {/* 4. 최종 신청 버튼 (Ref 연결) */}
                                 <button 
+                                    ref={submitButtonRef}
                                     disabled={!isAllValid}
-                                    className="w-full py-6 bg-blue-600 text-white font-black rounded-[2rem] text-xl shadow-2xl shadow-blue-200 hover:bg-blue-700 hover:-translate-y-1 transition-all active:scale-95 disabled:opacity-20 disabled:grayscale"
+                                    className="w-full py-6 bg-[#488ad8] text-white font-black rounded-[2rem] text-xl shadow-2xl shadow-blue-200 hover:bg-blue-700 hover:-translate-y-1 transition-all active:scale-95 disabled:opacity-20 disabled:grayscale"
                                     onClick={() => { 
                                         showAlert(`${applyData.dates.length}건의 출근 신청이 완료되었습니다.`); 
                                         closeModal(); 

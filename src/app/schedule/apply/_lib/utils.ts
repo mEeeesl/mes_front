@@ -22,17 +22,20 @@ export const getAvailableDates = (startDate: Date = new Date()): string[] => {
     dates.push(current.toISOString().split('T')[0]);
 
     // 익일이 영업일이 아니거나, 익일부터 다음 영업일까지의 구간을 구함
-    const tempDate = new Date(current);
-    while (true) {
-        tempDate.setDate(tempDate.getDate() + 1);
-        dates.push(tempDate.toISOString().split('T')[0]);
-        
-        // 영업일을 만났다면 거기서 멈춤 (그날까지는 오픈되어야 함)
-        if (isWorkDay(tempDate)) break;
-        
-        // 무한루프 방지 (최대 10일치만 계산)
-        if (dates.length > 10) break;
+    // 만약 '내일'이 영업일이라면? -> 여기서 끝 (내일모레는 안 나옴)
+    // 만약 '내일'이 공휴일/주말이라면? -> 다음 영업일이 나올 때까지 계속 추가
+    if (!isWorkDay(current)) {
+        const tempDate = new Date(current);
+        while (true) {
+            tempDate.setDate(tempDate.getDate() + 1);
+            dates.push(tempDate.toISOString().split('T')[0]);
+            
+            // 다음 영업일을 찾으면 거기서 멈춤
+            if (isWorkDay(tempDate)) break;
+            
+            // 무한루프 방지 (최대 10일치만 계산)
+            if (dates.length > 10) break;
+        }
     }
-
     return dates;
 };

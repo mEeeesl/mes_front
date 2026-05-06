@@ -14,6 +14,22 @@ export default function RegistrationForm({ onSuccess, onClose }: { onSuccess: ()
 
     const ju2Ref = useRef<HTMLInputElement>(null);
 
+    // 1. 등록 버튼 영역을 가리킬 Ref 생성
+    const submitSectionRef = useRef<HTMLDivElement>(null);
+
+    // 2. 성별 선택 시 호출할 핸들러
+    const handleGenderSelect = (g: string) => {
+        setFormData({ ...formData, gender: g });
+        
+        // 성별을 클릭하고 버튼이 렌더링된 직후에 스크롤 (약간의 지연 필요)
+        setTimeout(() => {
+            submitSectionRef.current?.scrollIntoView({ 
+                behavior: 'smooth', 
+                block: 'center' // 화면 중앙에 오도록 배치
+            });
+        }, 100);
+    };
+
     // 주민번호 앞자리 입력 (숫자 6자리 완료 시 뒷자리로 포커스 이동)
     const handleJu1Change = (val: string) => {
         const filtered = val.replace(/[^0-9]/g, '').slice(0, 6);
@@ -184,7 +200,8 @@ export default function RegistrationForm({ onSuccess, onClose }: { onSuccess: ()
                                             {['남성', '여성'].map(g => (
                                                 <button 
                                                     key={g}
-                                                    onClick={() => setFormData({...formData, gender: g})}
+                                                    // 3. 변경된 핸들러 연결
+                                                    onClick={() => handleGenderSelect(g)}
                                                     className={`flex-1 mt-2 py-4 rounded-2xl font-black transition-all border-2 
                                                         ${formData.gender === g 
                                                             ? 'bg-[#488ad8] border-blue-600 text-white shadow-xl shadow-blue-100 scale-[1.02]' 
@@ -197,18 +214,21 @@ export default function RegistrationForm({ onSuccess, onClose }: { onSuccess: ()
                                     </div>
                                 )}
 
-                                {/* 등록 완료 버튼 */}
-                                {formData.gender && (
-                                    <div className="pt-4 animate-in fade-in slide-in-from-bottom-4">
-                                        <button 
-                                            disabled={!isAllValid}
-                                            onClick={onSuccess}
-                                            className="w-full py-5 bg-[#488ad8] text-white font-black rounded-[1.8rem] text-xl shadow-2xl shadow-blue-200 hover:bg-blue-700 transition-all active:scale-95"
-                                        >
-                                            등록
-                                        </button>
-                                    </div>
-                                )}
+                                {/* 등록 완료 버튼 섹션 */}
+                                {/* 4. Ref 연결 및 컨테이너 유지 (스크롤 타겟) */}
+                                <div ref={submitSectionRef} className="min-h-[100px] flex items-end">
+                                    {formData.gender && (
+                                        <div className="w-full pt-4 animate-in fade-in slide-in-from-bottom-4">
+                                            <button 
+                                                disabled={!isAllValid}
+                                                onClick={onSuccess}
+                                                className="w-full py-5 bg-[#488ad8] text-white font-black rounded-[1.8rem] text-xl shadow-2xl shadow-blue-200 hover:bg-blue-700 transition-all active:scale-95"
+                                            >
+                                                등록
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     )}
