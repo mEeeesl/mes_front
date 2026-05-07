@@ -22,7 +22,10 @@ export async function middleware(request: NextRequest) {
     
     console.log(`[Middleware] 경로: ${pathname} | 보호대상: ${isAuthPage} | 토큰유무: ${!!token}`);
 
-
+console.log("==========================");
+console.log(request.cookies.getAll());
+console.log(request.headers.get("cookie"));
+console.log("==========================");
 
 
 
