@@ -31,7 +31,7 @@ export const authService = {
         /** 2026.04.09 빌드 에러 조치 */
         // [ 방식 3. as any 타입정의 + Alias ]
         // 1. 먼저 Axios의 전체 응답(Response)을 받습니다.
-        const response = await api.post<LoginResponse>('/api/auth/login', formData) as any;
+        const response = await api.post<LoginResponse>('/auth/login', formData) as any;
     
         // 2. response.data = ApiResponse<UserMap> 타입
         // 여기서 code, message, data를 꺼냅니다.
@@ -70,7 +70,7 @@ export const authService = {
         /** 2026.04.09 빌드 에러 조치 */
         // 1. 먼저 Axios의 전체 응답(Response)을 받습니다.
         // any >> AxiosResponse<UserProfile>이 아니라 내가 정의한 ApiResponse를 직접 반환한다는 것을 제네릭으로 알려줘야함
-        const response = await api.get<any, UserProfile>('/api/auth/profile');
+        const response = await api.get<any, UserProfile>('/auth/profile');
         console.log("------------------");
         console.log("Res : ");
         console.log(response);
@@ -106,7 +106,7 @@ export const authService = {
      */
     
     socialLogin: async (provider: string, code: string) : Promise<ApiResponse<any>> => {
-        const response = await api.post<ApiResponse<UserMap>>(`/api/auth/social/${provider}/login`, { provider, code }) as any;
+        const response = await api.post<ApiResponse<UserMap>>(`/auth/social/${provider}/login`, { provider, code }) as any;
 
         console.log("authService.SocialLogin...");
         console.log(response);
@@ -140,7 +140,7 @@ export const authService = {
             type: data.activeTab
         };
 
-        const response = await api.post<any, ApiResponse<dataMap>>('/api/auth/find-auth-chk', reqData);
+        const response = await api.post<any, ApiResponse<dataMap>>('/auth/find-auth-chk', reqData);
         //const response = await api.post<any, ApiResponse<dataMap>>('/auth/findId', reqData);
 
         if(response.cd !== '0000') {
@@ -162,7 +162,7 @@ export const authService = {
             type: "id"
         };
 
-        const response = await api.post<any, ApiResponse<dataMap>>('/api/auth/find-id', reqData);
+        const response = await api.post<any, ApiResponse<dataMap>>('/auth/find-id', reqData);
         //const response = await api.post<any, ApiResponse<dataMap>>('/auth/findId', reqData);
         
         //const response = await api.post<any, ApiResponse<dataMap>>('/auth/findId', data);
@@ -181,7 +181,7 @@ export const authService = {
             type: "pw"
         };
 
-        const response = await api.post<any, ApiResponse<dataMap>>('/api/auth/find-pw', reqData);
+        const response = await api.post<any, ApiResponse<dataMap>>('/auth/find-pw', reqData);
         //const response = await api.post<any, ApiResponse<dataMap>>('/auth/findPw', data);
         return response;
     },

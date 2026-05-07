@@ -14,7 +14,7 @@ const api = axios.create({
     // 그래야 미들웨어가 쿠키를 낚아채고, next.config.ts의 rewrites가 작동합니다.
     // Vercel에서 로그인 시 baseURL : baseURL로 사용하면, 다이렉트로 Render 백엔드를 호출하기에, 
     // Vercel의 middleware는 토큰을 감지할 수 없음
-    baseURL: "",
+    baseURL: "/api",
     withCredentials: true/*, // 모든 요청에 쿠키 포함 설정
     headers: {
         'Content-Type': 'application/json',
