@@ -8,7 +8,13 @@ const baseURL = process.env.NEXT_PUBLIC_API_URL;
 
 const api = axios.create({
     //baseURL: 'http://localhost/api', // next.config.ts의 rewrites를 통해 http://localhost/api 호출
-    baseURL: baseURL,
+    //baseURL: baseURL,
+
+    // baseURL을 비워야 브라우저가 현재 도메인(Vercel)의 /api/.. 로 요청을 보냅니다.
+    // 그래야 미들웨어가 쿠키를 낚아채고, next.config.ts의 rewrites가 작동합니다.
+    // Vercel에서 로그인 시 baseURL : baseURL로 사용하면, 다이렉트로 Render 백엔드를 호출하기에, 
+    // Vercel의 middleware는 토큰을 감지할 수 없음
+    baseURL: "",
     withCredentials: true/*, // 모든 요청에 쿠키 포함 설정
     headers: {
         'Content-Type': 'application/json',
@@ -88,7 +94,11 @@ api.interceptors.response.use(
                     console.log('isPublicPath ? ' + isPublicPath);
                     if (!isPublicPath) {
                         // 인터셉터가 없는 순수 axios로 재발급 요청
-                        await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/auth/reissue`, {}, { 
+                        //await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/auth/reissue`, {}, { 
+                        
+                        // ... 이러다보니 직접 Render를 호출하게됨...? 그래서 Vercel이 토큰을 못찾음.,.? 그래서 next.comfig.js rewrite 통하도록 하려면
+                        // 상대주소로 호출 필요..
+                        await axios.post('/api/auth/reissue', {}, { 
                             withCredentials: true 
                         });
                     }
