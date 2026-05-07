@@ -1,8 +1,11 @@
+'use client';
+
 import React, { useState, useRef } from 'react';
-import { CheckIcon, ChevronRightIcon, LockClosedIcon, InfoCircledIcon } from '@radix-ui/react-icons';
+import { CheckIcon, ChevronRightIcon, LockClosedIcon, InfoCircledIcon, Cross1Icon } from '@radix-ui/react-icons';
 
 /**
  * RegistrationForm: 개인정보 동의(Consent)부터 상세 정보 입력까지 처리하는 통합 모달
+ * 모바일에서는 '바텀 시트' 스타일로, 데스크톱에서는 일반 모달로 동작합니다.
  */
 export default function RegistrationForm({ onSuccess, onClose }: { onSuccess: () => void, onClose: () => void }) {
     const [currentStep, setCurrentStep] = useState(1); // 1: 동의(Consent), 2: 입력(Registration)
@@ -14,10 +17,10 @@ export default function RegistrationForm({ onSuccess, onClose }: { onSuccess: ()
 
     const ju2Ref = useRef<HTMLInputElement>(null);
 
-    // 1. 등록 버튼 영역을 가리킬 Ref 생성
+    // 1. 등록 버튼 영역을 가리킬 Ref 생성 (성별 선택 시 스크롤용)
     const submitSectionRef = useRef<HTMLDivElement>(null);
 
-    // 2. 성별 선택 시 호출할 핸들러
+    // 2. 성별 선택 시 호출할 핸들러 (수정: 모바일에서 버튼이 가려지지 않게 스크롤 추가)
     const handleGenderSelect = (g: string) => {
         setFormData({ ...formData, gender: g });
         
@@ -25,7 +28,7 @@ export default function RegistrationForm({ onSuccess, onClose }: { onSuccess: ()
         setTimeout(() => {
             submitSectionRef.current?.scrollIntoView({ 
                 behavior: 'smooth', 
-                block: 'center' // 화면 중앙에 오도록 배치
+                block: 'center' 
             });
         }, 100);
     };
@@ -53,43 +56,56 @@ export default function RegistrationForm({ onSuccess, onClose }: { onSuccess: ()
     const isJuminFull = formData.ju1.length === 6 && formData.ju2.length === 7;
     const canShowAccount = isJuminFull && formData.bank.trim().length > 0;
     const canShowGender = canShowAccount && formData.account.length > 5;
-    const isAllValid = canShowGender && formData.gender !== '';
 
     return (
-        <div className="fixed inset-0 z-[500] flex items-center sm:items-center justify-center p-0 sm:p-4">
-            {/* 시각적 깊이감을 주는 블러 배경 */}
+        <div className="fixed inset-0 z-[500] flex items-end sm:items-center justify-center p-0 sm:p-4">
+            {/* 배경 블러 처리 */}
             <div className="absolute inset-0 bg-slate-900/70 backdrop-blur-md animate-in fade-in duration-300" onClick={onClose} />
             
-            <div className="relative bg-white w-full max-w-lg rounded-[3rem] sm:rounded-[3.5rem] shadow-2xl overflow-hidden animate-in slide-in-from-bottom-10 duration-500">
+            {/* 모달 본체: 모바일 바텀시트 애니메이션 및 스타일 추가 */}
+            <div className="relative bg-white w-full max-w-lg 
+                rounded-t-[3rem] sm:rounded-[3.5rem] 
+                shadow-2xl overflow-hidden 
+                h-[92vh] sm:h-auto max-h-[100vh] sm:max-h-[85vh] 
+                flex flex-col 
+                animate-in slide-in-from-bottom-full sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-500 ease-out">
                 
-                {/* 상단 프로그레스 인디케이터 */}
-                <div className="flex h-1.5 w-full bg-slate-50">
-                    <div className={`h-full bg-blue-500 transition-all duration-700 ease-out ${currentStep === 1 ? 'w-1/3' : 'w-full'}`} />
+                {/* [추가] 모바일 전용 핸들 바: 시각적으로 바텀 시트임을 인지하게 함 */}
+                <div className="flex justify-center pt-4 pb-2 sm:hidden">
+                    <div className="w-12 h-1.5 bg-slate-200 rounded-full" />
                 </div>
 
-                <div className="p-8 sm:p-12 max-h-[85vh] overflow-y-auto custom-scrollbar">
+                {/* 상단 프로그레스바 */}
+                <div className="flex h-1.5 w-full bg-slate-50">
+                    <div className={`h-full bg-blue-500 transition-all duration-700 ease-out ${currentStep === 1 ? 'w-1/3' : 'w-2/3'}`} />
+                </div>
+
+                {/* 닫기 버튼 */}
+                <button onClick={onClose} className="absolute top-12 right-6 z-10 w-10 h-10 flex items-center justify-center bg-slate-100 rounded-full text-slate-500 hover:bg-slate-200 transition-colors">
+                    <Cross1Icon className="w-5 h-5" />
+                </button>
+
+                <div className="p-8 sm:p-12 overflow-y-auto custom-scrollbar flex-1">
                     
-                    {/* [1단계] 개인정보 수집 및 이용 동의 (Privacy Consent) */}
+                    {/* [Step 1] 개인정보 수집 및 이용 동의 */}
                     {currentStep === 1 && (
                         <div className="animate-in fade-in slide-in-from-left-4 duration-500">
-                            <header className="mb-8">
+                            <header className="mb-8 pr-10">
                                 <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-[10px] font-black uppercase tracking-widest mb-4">
-                                    <LockClosedIcon className="w-7 h-7 text-blue-600" />Security Check
+                                    <LockClosedIcon className="w-3 h-3" /> Security Check
                                 </div>
-                                <h3 className="text-3xl font-black text-slate-900 tracking-tight">서비스 이용 동의 <span className="text-[20px] text-[#488ad8]">(필수)</span></h3>
-                                <p className="text-slate-500 mt-3 font-medium leading-relaxed">
+                                <h3 className="text-3xl font-black text-slate-900 tracking-tight leading-tight">서비스 이용 동의</h3>
+                                <div className="text-slate-500 mt-3 font-medium text-sm leading-relaxed">
                                     정확한 급여 지급 및 고용보험 신고를 위해<br/> 
                                     <span className="text-slate-900 font-bold">개인정보 수집 동의</span>가 필요합니다.<br/><br/>
                                     동의를 거부할 수 있으나, 필수 항목 미동의 시<br/>
                                     근무신청과 급여지급이 제한될 수 있습니다.
-                                    
-
-                                </p>
+                                </div>
                             </header>
 
-                            {/* 동의 내용 박스 (더 깔끔하게 개선) */}
-                            <div className="bg-slate-50 rounded-[2rem] p-6 border border-slate-100 mb-8 transition-all">
-                                <div className="text-[12px] text-slate-500 leading-relaxed space-y-4 h-44 overflow-y-auto pr-2 custom-scrollbar scroll-smooth">
+                            <div className="bg-slate-50 rounded-[2rem] p-6 border border-slate-100 mb-8">
+                                <div className="text-[12px] text-slate-500 leading-relaxed space-y-4 h-44 overflow-y-auto pr-2 custom-scrollbar">
+                                    <p>근무 신청, 급여 이체, 법정 의무 신고를 위해 주민등록번호 등의 수집이 필요합니다.</p>
                                     <section>
                                         <h4 className="font-bold text-slate-700 mb-1 flex items-center gap-1">
                                             <InfoCircledIcon /> 수집 및 이용 목적
@@ -112,15 +128,10 @@ export default function RegistrationForm({ onSuccess, onClose }: { onSuccess: ()
                                 
                                 {/* 커스텀 체크박스 UI */}
                                 <div className="mt-6 pt-5 border-t border-slate-200">
-                                    <button 
-                                        onClick={() => setIsAgreed(!isAgreed)}
-                                        className="flex items-center justify-between w-full group"
-                                    >
-                                        <span className={`font-black transition-colors ${isAgreed ? 'text-blue-600' : 'text-slate-400'}`}>
-                                            위 내용을 모두 확인했습니다
-                                        </span>
+                                    <button onClick={() => setIsAgreed(!isAgreed)} className="flex items-center justify-between w-full group">
+                                        <span className={`font-black transition-colors ${isAgreed ? 'text-blue-600' : 'text-slate-400'}`}>위 내용을 확인했습니다</span>
                                         <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all border-2 
-                                            ${isAgreed ? 'bg-blue-600 border-blue-600' : 'border-slate-200 group-hover:border-slate-300'}`}>
+                                            ${isAgreed ? 'bg-blue-600 border-blue-600' : 'border-slate-200'}`}>
                                             <CheckIcon className="text-white w-5 h-5" />
                                         </div>
                                     </button>
@@ -130,83 +141,61 @@ export default function RegistrationForm({ onSuccess, onClose }: { onSuccess: ()
                             <button 
                                 disabled={!isAgreed}
                                 onClick={() => setCurrentStep(2)}
-                                className="w-full py-6 bg-slate-900 text-white font-black rounded-[1.8rem] text-lg shadow-xl hover:bg-black transition-all active:scale-95 disabled:opacity-20 flex items-center justify-center gap-2"
+                                className="w-full py-6 bg-slate-900 text-white font-black rounded-[2rem] text-lg shadow-xl hover:bg-black transition-all disabled:opacity-20 flex items-center justify-center gap-2"
                             >
-                                동의 완료 후 정보 입력 <ChevronRightIcon className="w-5 h-5" />
+                                다음 단계로 <ChevronRightIcon className="w-5 h-5" />
                             </button>
                         </div>
                     )}
 
-                    {/* [2단계] 상세 정보 입력 (Registration) */}
+                    {/* [Step 2] 정보 입력 */}
                     {currentStep === 2 && (
-                        <div className="animate-in slide-in-from-right-10 duration-500">
-                            <header className="mb-10 text-center sm:text-left">
+                        <div className="animate-in fade-in slide-in-from-right-10 duration-500">
+                            <header className="mb-10">
                                 <h3 className="text-3xl font-black text-slate-900 tracking-tight">상세 정보 입력</h3>
-                                <p className="text-slate-500 mt-2 font-medium leading-relaxed">
+                                <p className="text-slate-500 mt-2 font-medium text-sm">
+                                    급여 지급 및 고용보험 신고를 위한 정보입니다.
+                                </p>
+                                <p className="text-slate-500 mt-2 font-medium leading-relaxed text-sm">
                                     입력하신 정보는 <span className="text-slate-900 font-bold underline decoration-blue-200 decoration-4">급여 지급 목적</span> 외에<br/> 절대 사용되지 않습니다.
                                 </p>
                             </header>
 
-                            <div className="space-y-8">
+                            <div className="space-y-8 pb-10">
                                 {/* 주민번호 섹션 */}
                                 <div className="space-y-3">
-                                    <label className="text-[14px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">주민등록번호</label>
-                                    <div className="flex items-center gap-3">
-                                        <input 
-                                            type="text" inputMode="numeric" placeholder="앞 6자리"
-                                            value={formData.ju1} onChange={(e) => handleJu1Change(e.target.value)}
-                                            className="w-full p-5 bg-slate-50 rounded-2xl font-bold text-center tracking-widest focus:ring-2 ring-blue-500/20 outline-none transition-all"
-                                        />
-                                        <span className="text-slate-300 font-bold">-</span>
-                                        <input 
-                                            type="password" ref={ju2Ref} inputMode="numeric" placeholder="뒤 7자리"
-                                            value={formData.ju2} onChange={(e) => handleJu2Change(e.target.value)}
-                                            className="w-full p-5 bg-slate-50 rounded-2xl font-bold text-center tracking-[0.6em] focus:ring-2 ring-blue-500/20 outline-none transition-all"
-                                        />
+                                    <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">주민등록번호</label>
+                                    <div className="flex items-center gap-2">
+                                        <input type="text" inputMode="numeric" placeholder="앞 6자리" value={formData.ju1} onChange={(e) => handleJu1Change(e.target.value)}
+                                            className="w-full p-5 bg-slate-50 rounded-2xl font-bold text-center outline-none focus:ring-2 ring-blue-500/20 transition-all" />
+                                        <span className="text-slate-300">-</span>
+                                        <input type="password" ref={ju2Ref} inputMode="numeric" placeholder="뒤 7자리" value={formData.ju2} onChange={(e) => handleJu2Change(e.target.value)}
+                                            className="w-full p-5 bg-slate-50 rounded-2xl font-bold text-center outline-none focus:ring-2 ring-blue-500/20 transition-all" />
                                     </div>
                                 </div>
 
-                                {/* 은행명 섹션 */}
+                                {/* 은행명 & 계좌번호 섹션 */}
                                 {isJuminFull && (
-                                    <div className="space-y-3 animate-in fade-in slide-in-from-top-4">
-                                        <label className="text-[14px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">입금은행</label>
-                                        <input 
-                                            type="text" placeholder="예: 국민은행, 카카오뱅크"
-                                            value={formData.bank} onChange={(e) => setFormData({...formData, bank: e.target.value})}
-                                            className="w-full p-5 bg-slate-50 rounded-2xl font-bold focus:ring-2 ring-blue-500/20 outline-none transition-all"
-                                        />
-                                    </div>
-                                )}
-
-                                {/* 계좌번호 섹션 */}
-                                {canShowAccount && (
-                                    <div className="space-y-3 animate-in fade-in slide-in-from-top-4">
-                                        <label className="text-[14px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">계좌번호</label>
-                                        <input 
-                                            type="text" inputMode="numeric" placeholder="하이픈(-)을 포함해 입력하세요"
-                                            value={formData.account} onChange={(e) => handleAccountChange(e.target.value)}
-                                            className="w-full p-5 bg-slate-50 rounded-2xl font-bold focus:ring-2 ring-blue-500/20 outline-none transition-all text-blue-600"
-                                        />
-                                        <span className='ml-2 text-[#488ad8]'>※ 하이픈(-)을 포함하여 입력해주세요.</span><br/>
-                                        <span className='ml-5 text-[#488ad8]'>예) 111-333-777999</span>
+                                    <div className="space-y-3 animate-in fade-in slide-in-from-top-2">
+                                        <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">은행 및 계좌</label>
+                                        <input type="text" placeholder="은행명 (ex: 국민은행, 카카오뱅크)" value={formData.bank} onChange={(e) => setFormData({...formData, bank: e.target.value})}
+                                            className="w-full p-5 bg-slate-50 rounded-2xl font-bold mb-2 outline-none focus:ring-2 ring-blue-500/20" />
+                                        {formData.bank && (
+                                            <input type="text" placeholder="계좌번호 (- 포함)" value={formData.account} onChange={(e) => handleAccountChange(e.target.value)}
+                                                className="w-full p-5 bg-slate-50 rounded-2xl font-bold text-blue-600 outline-none focus:ring-2 ring-blue-500/20" />
+                                        )}
                                     </div>
                                 )}
 
                                 {/* 성별 섹션 */}
-                                {canShowGender && (
-                                    <div className="space-y-3 animate-in fade-in slide-in-from-top-4">
-                                        <label className="text-[14px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">성별</label>
-                                        <div className="flex gap-3">
+                                {canShowAccount && (
+                                    <div className="space-y-3 animate-in fade-in slide-in-from-top-2">
+                                        <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">성별</label>
+                                        <div className="flex gap-2">
                                             {['남성', '여성'].map(g => (
-                                                <button 
-                                                    key={g}
-                                                    // 3. 변경된 핸들러 연결
-                                                    onClick={() => handleGenderSelect(g)}
-                                                    className={`flex-1 mt-2 py-4 rounded-2xl font-black transition-all border-2 
-                                                        ${formData.gender === g 
-                                                            ? 'bg-[#488ad8] border-blue-600 text-white shadow-xl shadow-blue-100 scale-[1.02]' 
-                                                            : 'bg-white border-slate-100 text-slate-400 hover:border-slate-200'}`}
-                                                >
+                                                <button key={g} onClick={() => handleGenderSelect(g)}
+                                                    className={`flex-1 py-4 rounded-2xl font-black border-2 transition-all 
+                                                        ${formData.gender === g ? 'bg-blue-600 border-blue-600 text-white shadow-md' : 'bg-white border-slate-100 text-slate-400'}`}>
                                                     {g}
                                                 </button>
                                             ))}
@@ -214,19 +203,15 @@ export default function RegistrationForm({ onSuccess, onClose }: { onSuccess: ()
                                     </div>
                                 )}
 
-                                {/* 등록 완료 버튼 섹션 */}
-                                {/* 4. Ref 연결 및 컨테이너 유지 (스크롤 타겟) */}
-                                <div ref={submitSectionRef} className="min-h-[100px] flex items-end">
+                                {/* 등록 완료 버튼 섹션 - 스크롤 타겟 */}
+                                <div ref={submitSectionRef} className="pt-4 min-h-[80px]">
                                     {formData.gender && (
-                                        <div className="w-full pt-4 animate-in fade-in slide-in-from-bottom-4">
-                                            <button 
-                                                disabled={!isAllValid}
-                                                onClick={onSuccess}
-                                                className="w-full py-5 bg-[#488ad8] text-white font-black rounded-[1.8rem] text-xl shadow-2xl shadow-blue-200 hover:bg-blue-700 transition-all active:scale-95"
-                                            >
-                                                등록
-                                            </button>
-                                        </div>
+                                        <button 
+                                            onClick={onSuccess}
+                                            className="w-full py-6 bg-blue-600 text-white font-black rounded-[2rem] text-xl shadow-lg active:scale-95 transition-all animate-in zoom-in-95 duration-300"
+                                        >
+                                            신청하기
+                                        </button>
                                     )}
                                 </div>
                             </div>
