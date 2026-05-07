@@ -40,15 +40,34 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
     // 훅에서 가져온 데이터를 주스탠드 스토어에 동기화
     
     useEffect(() => {
+        console.log("=============================================");
+        console.log("=============================================");
+        console.log("=============================================");
         if (!isProfileLoading) {
+            console.log("#############################################");
+            console.log("#############################################");
+            console.log("#############################################");
+            console.log("인증 체크 로딩 완료:", { hasData: !!profileData, pathname });
+            console.log("#############################################");
+            console.log("#############################################");
+            console.log("#############################################");
 
             // 훅(Tanstack Query Cache)에서 가져온 데이터를 스토어(Zustand)에 동기화
-            setUser(profileData ?? null);
+            //setUser(profileData ?? null);
+            if (profileData) {
+                setUser(profileData);
+            } else {
+                // 데이터가 없으면 확실하게 비워줌
+                clearAuth(); 
+            }
 
             // 초기화 완료
             setInitialized(true);
 
         }
+        console.log("=============================================");
+        console.log("=============================================");
+        console.log("=============================================");
     }, [profileData, isProfileLoading, setInitialized, setUser, ]);
 
 
