@@ -25,6 +25,9 @@ export async function middleware(request: NextRequest) {
 console.log("==========================");
 console.log(request.cookies.getAll());
 console.log(request.headers.get("cookie"));
+console.log(token);
+const allHeaders = Object.fromEntries(request.headers.entries());
+console.log("All Headers:", JSON.stringify(allHeaders, null, 2));
 console.log("==========================");
 
 
