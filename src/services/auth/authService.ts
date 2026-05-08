@@ -4,8 +4,8 @@
  */
 
 import api from '@/lib/axios'; // [ 공통 서버 통신 axios ]
-import { ApiResponse } from '../../types/common/api'; // [ 백엔드 응답 데이터 공통 규격 ]
-import { UserMap, dataMap, LoginRequest, LoginResponse, UserProfile } from '@/types/auth'; // [ 전용 로그인 데이터 규격 ]
+import { ApiResponse, DataMap } from '../../types/common/api'; // [ 백엔드 응답 데이터 공통 규격 ]
+import { UserMap, dataMap, LoginRequest, LoginResponse, UserProfile, ApiResData } from '@/types/auth'; // [ 전용 로그인 데이터 규격 ]
 import { ApiError } from '../../app/util/error';
 
 export const authService = {
@@ -185,5 +185,39 @@ export const authService = {
         //const response = await api.post<any, ApiResponse<dataMap>>('/auth/findPw', data);
         return response;
     },
+
+
+    // chk personal_id 
+    /** 유저 프로필 조회 */
+    checkPersonalId: async (): Promise<DataMap> => {
+
+        ////const { cd, msg, data } = await api.get<UserProfile>('/profile');
+        //const { data } = await api.get<{ user: UserProfile }>('/profile');
+
+        /** 2026.04.09 빌드 에러 조치 */
+        // 1. 먼저 Axios의 전체 응답(Response)을 받습니다.
+        // any >> AxiosResponse<UserProfile>이 아니라 내가 정의한 ApiResponse를 직접 반환한다는 것을 제네릭으로 알려줘야함
+        const response = await api.get<any, ApiResData>('/schedule/check-status');
+        console.log("------------------");
+        console.log(response);
+        console.log(response.data);
+        console.log("------------------");
+    
+        const { cd, msg, data: res } = response;
+
+
+        /**
+         * [ 서버 응답코드 체크 ]
+         * 로그인 실패 시 코드별로 에러 처리
+         */
+        if(cd !== "0000") { // 기타 사유 실패 코드
+            throw new Error(msg || "authService >> 로그인 실패 응답 [ axios 에러 / 서버 에러 ] 등");
+        }
+
+        //return data.user;
+        return res;
+    },
+
+
 
 };

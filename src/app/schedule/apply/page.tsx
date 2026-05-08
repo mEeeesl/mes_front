@@ -5,6 +5,7 @@ import { ChevronRightIcon, CalendarIcon, Cross1Icon, CheckIcon } from '@radix-ui
 import { getAvailableDates } from './_lib/utils';
 import RegistrationForm from './_components/RegistrationForm';
 import PrivacyConsent from './_components/PrivacyConsent';
+import { useApply } from '@/hooks/schedule/useApply';
 import { useModalStore } from '@/stores/useModalStore'; 
 
 const SHUTTLE_STOPS: Record<string, string[]> = {
@@ -23,6 +24,8 @@ export default function AttendanceApply() {
     const [isAgreed, setIsAgreed] = useState(false);
     const showAlert = useModalStore((state) => state.showAlert);
     const submitButtonRef = useRef<HTMLButtonElement>(null);
+
+    const { chkPersonalId, isCheckkingId } = useApply();
 
     const [applyData, setApplyData] = useState<{
         dates: string[];
@@ -74,6 +77,7 @@ export default function AttendanceApply() {
             return;
         }
         // 실제로는 여기서 DB 체크 로직(주민)
+        /*
         const isVerifiedInDB = false; 
         if (!isVerifiedInDB) {
             setIsIdentityVerified(false);
@@ -82,6 +86,22 @@ export default function AttendanceApply() {
             setIsIdentityVerified(true);
             setSelectedStore(store);
         }
+            */
+        chkPersonalId(undefined, {
+            onSuccess: (res) => {
+                alert(res);
+                if(res.existYn != 'Y'){
+                    setIsIdentityVerified(false);
+                    setShowRegModal(true);
+                } else {
+                    setIsIdentityVerified(true);
+                    setSelectedStore(store);
+                }
+            },
+            onError: (error) => {
+                showAlert("잠시후 다시 시도해주세요.");
+            }
+        })
     };
 
     const closeModal = () => {

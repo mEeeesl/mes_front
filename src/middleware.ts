@@ -12,6 +12,7 @@ export async function middleware(request: NextRequest) {
     // 2. 로그인이 필요한 경로 정의
     const authRequiredPaths = [
         '/mypage',
+        '/schedule/check-status',
         '/dashboardaaaaaa',
         '/settingsaaaaaa',
         '/adminaaaaaaaa'
@@ -27,7 +28,7 @@ console.log(request.cookies.getAll());
 console.log(request.headers.get("cookie"));
 console.log(token);
 const allHeaders = Object.fromEntries(request.headers.entries());
-console.log("All Headers:", JSON.stringify(allHeaders, null, 2));
+//console.log("All Headers:", JSON.stringify(allHeaders, null, 2));
 console.log("==========================");
 
 
@@ -99,6 +100,7 @@ console.log("==========================");
 export const config = {
     matcher: [
         '/mypage/:path*',
+        '/schedule/check-status',
         '/login',
         '/dashboardaaaaaa/:path*',
         '/settingsaaaaaa/:path*',

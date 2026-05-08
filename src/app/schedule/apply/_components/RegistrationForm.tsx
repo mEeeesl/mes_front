@@ -163,7 +163,7 @@ export default function RegistrationForm({ onSuccess, onClose }: { onSuccess: ()
 
                             <div className="space-y-8 pb-10">
                                 {/* 주민번호 섹션 */}
-                                <div className="space-y-3">
+                                <div className="space-y-3">cxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
                                     <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">주민등록번호</label>
                                     <div className="flex items-center gap-2">
                                         <input type="text" inputMode="numeric" placeholder="앞 6자리" value={formData.ju1} onChange={(e) => handleJu1Change(e.target.value)}
