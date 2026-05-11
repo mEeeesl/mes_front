@@ -12,7 +12,7 @@ export async function middleware(request: NextRequest) {
     // 2. 로그인이 필요한 경로 정의
     const authRequiredPaths = [
         '/mypage',
-        '/schedule/check-status',
+        '/schedule',
         '/dashboardaaaaaa',
         '/settingsaaaaaa',
         '/adminaaaaaaaa'
@@ -100,7 +100,7 @@ console.log("==========================");
 export const config = {
     matcher: [
         '/mypage/:path*',
-        '/schedule/check-status',
+        '/schedule/:path*',
         '/login',
         '/dashboardaaaaaa/:path*',
         '/settingsaaaaaa/:path*',

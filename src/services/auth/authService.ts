@@ -188,8 +188,9 @@ export const authService = {
 
 
     // chk personal_id 
-    /** 유저 프로필 조회 */
-    checkPersonalId: async (): Promise<DataMap> => {
+    /** 유저 디테일 조회 */
+    checkPersonalId: async (data?: any): Promise<{existYn: string}> => {
+        // 파라미터 없으면 빈 객체{} 기본값 세팅
 
         ////const { cd, msg, data } = await api.get<UserProfile>('/profile');
         //const { data } = await api.get<{ user: UserProfile }>('/profile');
@@ -197,7 +198,7 @@ export const authService = {
         /** 2026.04.09 빌드 에러 조치 */
         // 1. 먼저 Axios의 전체 응답(Response)을 받습니다.
         // any >> AxiosResponse<UserProfile>이 아니라 내가 정의한 ApiResponse를 직접 반환한다는 것을 제네릭으로 알려줘야함
-        const response = await api.get<any, ApiResData>('/schedule/check-status');
+        const response = await api.post<any, ApiResData>('/schedule/check-status');
         console.log("------------------");
         console.log(response);
         console.log(response.data);

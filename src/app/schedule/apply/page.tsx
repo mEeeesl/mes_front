@@ -87,9 +87,9 @@ export default function AttendanceApply() {
             setSelectedStore(store);
         }
             */
-        chkPersonalId(undefined, {
+        chkPersonalId({}, {
             onSuccess: (res) => {
-                alert(res);
+                
                 if(res.existYn != 'Y'){
                     setIsIdentityVerified(false);
                     setShowRegModal(true);

@@ -5,7 +5,7 @@ import { authService } from '@/services/auth/authService';
 
 export const useApply = () => {
     const chkPersonalIdMutation = useMutation({
-    mutationFn: () => authService.checkPersonalId(),
+    mutationFn: (data:any) => authService.checkPersonalId(data),
     onSuccess: (exists) => {
       if (exists) {
         // 이미 존재하는 유저일 때의 처리 로직
