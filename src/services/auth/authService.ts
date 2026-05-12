@@ -139,13 +139,12 @@ export const authService = {
             authCode: data.authCode,
             type: data.activeTab
         };
-
         const response = await api.post<any, ApiResponse<dataMap>>('/auth/find-auth-chk', reqData);
         //const response = await api.post<any, ApiResponse<dataMap>>('/auth/findId', reqData);
-
-        if(response.cd !== '0000') {
+        
+        //if(response.cd !== '0000') {
             //throw new Error(response.msg || "잠시 후 다시 시도해주세요.");
-        }
+        //}
         
         //const response = await api.post<any, ApiResponse<dataMap>>('/auth/findId', data);
         return response;

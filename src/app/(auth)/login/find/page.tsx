@@ -119,7 +119,11 @@ export default function FindAccountPage() {
 
             verifyAuthCode({activeTab, name, userId, email, authCode}, {
                 onSuccess: (res) => {
-                    setIsAuthSent(true);
+                    if(res.cd === '0000'){
+                        setIsAuthSent(true);
+                    } else {
+                        setIsAuthSent(false);
+                    }
                 },
                 onError: (error) => {
                     // 훅이나 서비스에서 throw한 Err
