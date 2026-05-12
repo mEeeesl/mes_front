@@ -215,7 +215,7 @@ export const authService = {
         }
 
         //return data.user;
-        return res;
+        return res.existYn;
     },
 
 

@@ -25,7 +25,11 @@ export default function AttendanceApply() {
     const showAlert = useModalStore((state) => state.showAlert);
     const submitButtonRef = useRef<HTMLButtonElement>(null);
 
-    const { chkPersonalId, isCheckkingId } = useApply();
+    // applyAttendance 추가
+    const { chkPersonalId, isCheckkingId, applyAttendance, isApplying } = useApply();
+
+    // 최초 신청자 정보 저장용 상태 (RegistrationForm에서 받아옴)
+    const [regFormData, setRegFormData] = useState<any>(null);
 
     const [applyData, setApplyData] = useState<{
         dates: string[];
@@ -77,19 +81,8 @@ export default function AttendanceApply() {
             return;
         }
         // 실제로는 여기서 DB 체크 로직(주민)
-        /*
-        const isVerifiedInDB = false; 
-        if (!isVerifiedInDB) {
-            setIsIdentityVerified(false);
-            setShowRegModal(true);
-        } else {
-            setIsIdentityVerified(true);
-            setSelectedStore(store);
-        }
-            */
         chkPersonalId({}, {
             onSuccess: (res) => {
-                
                 if(res.existYn != 'Y'){
                     setIsIdentityVerified(false);
                     setShowRegModal(true);
@@ -109,6 +102,39 @@ export default function AttendanceApply() {
         setShowRegModal(false);
         setApplyData({ dates: [], shuttleRegion: '', shuttleStop: '' });
         setIsAgreed(false);
+        setRegFormData(null); // 폼 데이터 초기화
+    };
+
+    // 신청하기 버튼 클릭
+    const handleFinalSubmit = () => {
+        // 서버에 보낼 최종 페이로드 구성
+        const payload = {
+            brand: selectedStore,
+            ...applyData,
+            // 최초 신청자 정보가 있다면 포함해서 전송
+            ...(regFormData && {
+                ju1: regFormData.ju1,
+                ju2: regFormData.ju2,
+                user_sex: regFormData.user_sex,
+                bank_nm: regFormData.bank_nm,
+                accnt_num: regFormData.accnt_num
+            })
+        };
+
+        applyAttendance(payload, {
+            onSuccess: (res) => {
+                // 응답 코드(cd)에 따른 분기 처리
+                if (res.cd === '0000') {
+                    showAlert("신청이 완료되었습니다."); 
+                    //closeModal(); 일단 대기, 개발 끝나면 활성화
+                } else {
+                    showAlert(res.msg || "신청 중 오류가 발생했습니다.");
+                }
+            },
+            onError: () => {
+                showAlert("서버 통신에 실패했습니다. 잠시 후 다시 시도해주세요.");
+            }
+        });
     };
 
     const isAllValid = applyData.dates.length > 0 && applyData.shuttleRegion && applyData.shuttleStop && isAgreed;
@@ -119,7 +145,7 @@ export default function AttendanceApply() {
             <div className="bg-white px-8 py-16 shadow-sm border-b border-slate-100 text-center sm:text-left">
                 <div className="max-w-5xl mx-auto">
                     <h2 className="text-5xl font-black text-slate-900 tracking-tight italic">ATTENDANCE</h2>
-                    <p className="text-slate-400 mt-3 font-semibold text-lg">근무 일정을 선택하고 셔틀을 예약하세요.</p>
+                    <p className="text-slate-400 mt-3 font-semibold text-lg">브랜드를 선택하고 근무를 신청하세요.</p>
                 </div>
             </div>
 
@@ -146,7 +172,8 @@ export default function AttendanceApply() {
 
             {showRegModal && (
                 <RegistrationForm 
-                    onSuccess={() => {
+                    onSuccess={(data) => { // 폼 데이터를 인자로 받음
+                        setRegFormData(data); // 상세 정보 임시 저장
                         setShowRegModal(false);
                         setIsIdentityVerified(true);
                         setSelectedStore('Zara');
@@ -166,7 +193,7 @@ export default function AttendanceApply() {
                         <div className="px-10 pt-12 pb-6 flex justify-between items-center border-b-1 mb-5">
                             <div>
                                 <h3 className="text-3xl font-black text-slate-900 leading-tight">
-                                    {selectedStore} <span className="text-blue-600">신청</span>
+                                    {selectedStore} <span className="text-[#488ad8]">신청</span>
                                 </h3>
                                 <p className="text-slate-400 font-bold mt-1">정보를 순서대로 선택해주세요.</p>
                             </div>
@@ -180,7 +207,7 @@ export default function AttendanceApply() {
                             
                             {/* 1. 날짜 선택 - PC에서 3열로 보이게 */}
                             <section className="space-y-6">
-                                <label className="flex items-center gap-2 text-[12px] font-black text-blue-600 uppercase tracking-widest">
+                                <label className="flex items-center gap-2 text-[12px] font-black text-[#488ad8] uppercase tracking-widest">
                                     <CalendarIcon /> Step 01. 근무 일자
                                 </label>
                                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
@@ -202,7 +229,7 @@ export default function AttendanceApply() {
 
                             {/* 2. 지역 선택 - 모바일 가로스크롤 유지 + PC 여러 줄(Wrap) 대응 */}
                             <section className="space-y-6">
-                                <label className="flex items-center gap-2 text-[12px] font-black text-blue-600 uppercase tracking-widest">
+                                <label className="flex items-center gap-2 text-[12px] font-black text-[#488ad8] uppercase tracking-widest">
                                     Step 02. 탑승 지역
                                 </label>
                                 {/* sm:flex-wrap을 주면 PC(넓은화면)에서는 아래로 떨어지면서 여러 줄이 됩니다 */}
@@ -225,7 +252,7 @@ export default function AttendanceApply() {
                             {/* 3. 상세 장소 선택 */}
                             {applyData.shuttleRegion && (
                                 <section className="space-y-6 animate-in fade-in slide-in-from-top-4">
-                                    <label className="text-[12px] font-black text-blue-600 uppercase tracking-widest">
+                                    <label className="text-[12px] font-black text-[#488ad8] uppercase tracking-widest">
                                         Step 03. 상세 탑승지
                                     </label>
                                     <div className="space-y-3">
@@ -235,12 +262,12 @@ export default function AttendanceApply() {
                                                 onClick={() => setApplyData(prev => ({ ...prev, shuttleStop: stop }))}
                                                 className={`w-full p-6 rounded-[2rem] border-2 text-left transition-all flex justify-between items-center
                                                     ${applyData.shuttleStop === stop 
-                                                        ? 'border-blue-600 bg-blue-50/50 text-slate-900 shadow-md' 
+                                                        ? 'border-[#488ad8] bg-blue-50/50 text-slate-900 shadow-md' 
                                                         : 'border-slate-100 bg-white text-slate-500 hover:border-slate-200'}`}
                                             >
                                                 <span className="font-bold text-lg">{stop}</span>
                                                 <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center
-                                                    ${applyData.shuttleStop === stop ? 'bg-blue-600 border-blue-600' : 'border-slate-200'}`}>
+                                                    ${applyData.shuttleStop === stop ? 'bg-[#488ad8] border-blue-600' : 'border-slate-200'}`}>
                                                     {applyData.shuttleStop === stop && <CheckIcon className="text-white w-4 h-4" />}
                                                 </div>
                                             </button>
@@ -251,17 +278,14 @@ export default function AttendanceApply() {
 
                             <PrivacyConsent onAgreeChange={setIsAgreed} />
 
-                            <div className="pt-6">
+                            <div className="pt-3">
                                 <button 
                                     ref={submitButtonRef}
-                                    disabled={!isAllValid}
-                                    className="w-full py-8 bg-slate-900 text-white font-black rounded-[2.5rem] text-2xl shadow-2xl hover:bg-blue-600 disabled:opacity-20 transition-all active:scale-95"
-                                    onClick={() => { 
-                                        showAlert("신청이 완료되었습니다."); 
-                                        closeModal(); 
-                                    }}
+                                    disabled={!isAllValid || isApplying} // 통신 중일 때 비활성화 추가
+                                    className="w-full py-5 bg-slate-900 text-white font-black rounded-[2.5rem] text-2xl shadow-2xl hover:bg-blue-600 disabled:opacity-20 transition-all active:scale-95"
+                                    onClick={handleFinalSubmit}
                                 >
-                                    신청하기
+                                    {isApplying ? "처리 중..." : "신청하기"}
                                 </button>
                             </div>
                         </div>

@@ -8,7 +8,7 @@ export default function PrivacyConsent({ onAgreeChange }: { onAgreeChange: (agre
                 개인정보 수집 및 이용 동의
             </h4>
             
-            <div className="text-[14px] text-slate-500 leading-relaxed h-32 overflow-y-auto pr-2 custom-scrollbar bg-white/50 p-0 rounded-xl border border-slate-100">
+            <div className="text-[14px] text-slate-500 leading-relaxed h-50 overflow-y-auto pr-2 custom-scrollbar bg-white/50 p-0 rounded-xl border border-slate-100">
                 <p>
                     <strong>1. 수집 항목:</strong><br/>
                     성별, 주민등록번호, 계좌정보, 지역, 연락처 등
