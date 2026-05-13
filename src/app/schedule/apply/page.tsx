@@ -83,7 +83,7 @@ export default function AttendanceApply() {
         // 실제로는 여기서 DB 체크 로직(주민)
         chkPersonalId({}, {
             onSuccess: (res) => {
-                if(res.existYn != 'Y'){
+                if(!res){
                     setIsIdentityVerified(false);
                     setShowRegModal(true);
                 } else {
@@ -126,7 +126,7 @@ export default function AttendanceApply() {
                 // 응답 코드(cd)에 따른 분기 처리
                 if (res.cd === '0000') {
                     showAlert("신청이 완료되었습니다."); 
-                    //closeModal(); 일단 대기, 개발 끝나면 활성화
+                    closeModal();
                 } else {
                     showAlert(res.msg || "신청 중 오류가 발생했습니다.");
                 }

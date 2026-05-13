@@ -139,12 +139,13 @@ export const authService = {
             authCode: data.authCode,
             type: data.activeTab
         };
+
         const response = await api.post<any, ApiResponse<dataMap>>('/auth/find-auth-chk', reqData);
         //const response = await api.post<any, ApiResponse<dataMap>>('/auth/findId', reqData);
-        
-        //if(response.cd !== '0000') {
+
+        if(response.cd !== '0000') {
             //throw new Error(response.msg || "잠시 후 다시 시도해주세요.");
-        //}
+        }
         
         //const response = await api.post<any, ApiResponse<dataMap>>('/auth/findId', data);
         return response;
@@ -188,7 +189,7 @@ export const authService = {
 
     // chk personal_id 
     /** 유저 디테일 조회 */
-    checkPersonalId: async (data?: any): Promise<{existYn: string}> => {
+    checkPersonalId: async (data?: any): Promise<{isExist: boolean}> => {
         // 파라미터 없으면 빈 객체{} 기본값 세팅
 
         ////const { cd, msg, data } = await api.get<UserProfile>('/profile');
@@ -198,11 +199,6 @@ export const authService = {
         // 1. 먼저 Axios의 전체 응답(Response)을 받습니다.
         // any >> AxiosResponse<UserProfile>이 아니라 내가 정의한 ApiResponse를 직접 반환한다는 것을 제네릭으로 알려줘야함
         const response = await api.post<any, ApiResData>('/schedule/check-status');
-        console.log("------------------");
-        console.log(response);
-        console.log(response.data);
-        console.log("------------------");
-    
         const { cd, msg, data: res } = response;
 
 
@@ -215,7 +211,7 @@ export const authService = {
         }
 
         //return data.user;
-        return res.existYn;
+        return res.isExist;
     },
 
 
