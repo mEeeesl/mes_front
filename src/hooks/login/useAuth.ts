@@ -105,7 +105,6 @@ export const useAuth = (options = { enabled: true }) => {
         
         queryFn: async () => {
             try {
-                console.log('useAuth.ts 훅 :: 프로필 조회 :: ');
                 //return await authService.getProfile();
 
                 const data = await authService.getProfile();

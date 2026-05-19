@@ -30,8 +30,6 @@ export default function Header() {
     //const { user } = useAuthStore();
     const user = useAuthStore((state) => state.user);
     const isInitialized = useAuthStore((state) => state.isInitialized);
-    console.log("Header : 현재 user : " + user);
-    console.log("Header : 현재 isInitialized : " + isInitialized);
 
     // 사이드바 열림/닫힘 상태
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -58,8 +56,15 @@ export default function Header() {
         부서홈페이지의 루트가 될 디렉토리를 (dept) 이런식으로 만들고 
         해당 디렉토리 내 layout.tsx를 새로 만들어 공통 레이아웃 적용하면됨
     */}
-    const hideHeaderPaths = [/*'/login',*/ '/etc/etc/etc'];
-    if (hideHeaderPaths.includes(pathname)) return null;
+    const hideHeaderPatterns = [
+        /*'/login',*/ 
+        '/wedding/mes/m/invitation'
+    ];
+    const shouldHideHeader = hideHeaderPatterns.some(path => pathname.startsWith(path));
+
+    if (shouldHideHeader) return null;
+    
+    //if (hideHeaderPaths.includes(pathname)) return null;
 
 
     // + 공통 레이아웃 비적용 경로 리스트  

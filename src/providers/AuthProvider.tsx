@@ -13,7 +13,7 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
     const router = useRouter();
 
     // 1. Public Paths 공개 경로 설정 (이곳에선 인증 체크 로딩을 보이지 않음)
-    const publicPaths = ['/login', '/signup', '/signup/callback', '/auth/signup/chk'];
+    const publicPaths = ['/login', '/signup', '/signup/callback', '/auth/signup/chk', '/wedding/mes/m/invitation'];
     const isPublicPath = publicPaths.some(path => pathname === path || pathname.startsWith(path + '/'));
     // const isPublicPath = publicPaths.some(path => pathname.includes(path));
 
@@ -40,18 +40,7 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
     // 훅에서 가져온 데이터를 주스탠드 스토어에 동기화
     
     useEffect(() => {
-        console.log("=============================================");
-        console.log("=============================================");
-        console.log("=============================================");
         if (!isProfileLoading) {
-            console.log("#############################################");
-            console.log("#############################################");
-            console.log("#############################################");
-            console.log("인증 체크 로딩 완료:", { hasData: !!profileData, pathname });
-            console.log("#############################################");
-            console.log("#############################################");
-            console.log("#############################################");
-
             // 훅(Tanstack Query Cache)에서 가져온 데이터를 스토어(Zustand)에 동기화
             //setUser(profileData ?? null);
             if (profileData) {
@@ -65,9 +54,6 @@ export default function AuthProvider({ children }: { children: React.ReactNode }
             setInitialized(true);
 
         }
-        console.log("=============================================");
-        console.log("=============================================");
-        console.log("=============================================");
     }, [profileData, isProfileLoading, setInitialized, setUser, ]);
 
 
